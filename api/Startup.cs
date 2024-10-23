@@ -1,0 +1,40 @@
+﻿using Api.Datastore;
+using Api.Services.Auth;
+using Microsoft.EntityFrameworkCore;
+
+namespace Api;
+
+public class Startup
+{
+    public static void Start(WebApplicationBuilder builder)
+    {
+        // Build the app.
+        var app = builder.Build();
+        bool isInDocker = builder.Configuration.GetValue<bool>("RUNNING_IN_DOCKER");
+
+        // Apply migrations if running in Docker
+        if (isInDocker)
+        {
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+                dbContext.Database.Migrate();
+            }
+        }
+
+        // Configure the HTTP request pipeline.
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+
+        // Middleware
+        app.UseHttpsRedirection();
+        app.UseAuthorization();
+        app.MapControllers();
+
+        // Run the app.
+        app.Run();
+    }
+}

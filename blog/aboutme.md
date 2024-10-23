@@ -1,0 +1,11 @@
+---
+layout: page
+title: About me
+subtitle: 
+---
+
+I'm Ruben Flinterman, a Computer Science student based in Rotterdam, Netherlands. Currently, I’m focused on my studies at Rotterdam University of Applied Sciences.
+
+Previously, I worked as a software developer and student researcher at Datalab Rotterdam and Chemical Engineering. Both at Datalab and Chemical Engineering, I developed custom software to automate and scale repetitive tasks. During my time at Chemical Engineering, I also co-authored a research paper that is yet to be published.
+
+In 2019, 2022, and 2023, I participated in some competitions with friends, which led to us winning a few cool prizes. I also have a few personal projects that I’m working on in my free time.

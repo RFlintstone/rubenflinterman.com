@@ -1,0 +1,11 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+gem "jekyll", "~> 4.3.3"
+gem 'jekyll-paginate', '~> 1.1'
+gem 'jekyll-sitemap', '~> 1.4'
+
+gem "webrick", "~> 1.8"
+gem 'tzinfo', '~> 2.0', '>= 2.0.6'
+gem 'tzinfo-data', '~> 1.2023', '>= 1.2023.3'

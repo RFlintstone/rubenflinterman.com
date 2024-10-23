@@ -1,0 +1,28 @@
+services:
+  jekyll:
+    image: ruby:3.3.0
+    container_name: jekyll_builder
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      - GEM_HOME=/usr/local/bundle
+      - PATH=/usr/local/bundle/bin:$PATH
+    command: >
+      /bin/sh -c "
+      apt-get update -qq &&
+      apt-get install -y build-essential libpq-dev nodejs &&
+      gem install bundler -v 2.4.22 &&
+      bundle install &&
+      bundle exec jekyll build"
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx_server
+    volumes:
+      - ./_site:/usr/share/nginx/html
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - jekyll

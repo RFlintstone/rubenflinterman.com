@@ -1,0 +1,40 @@
+﻿services:
+  db:
+    image: ghcr.io/cloudnative-pg/postgresql:15.4
+    environment:
+      - POSTGRES_USER=pi
+      - POSTGRES_PASSWORD=12345
+      - POSTGRES_DB=app
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  adminer:
+    image: adminer
+    ports:
+      - "8082:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=db
+  
+  api:
+    image: api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+      - "3001:3001"
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080;http://+:8081
+      - RUNNING_IN_DOCKER=true
+      - "ConnectionStrings__Postgres=Server=db;Port=5432;Database=app;Username=pi;Password=12345;"
+    volumes:
+      - ./keys:/app/keys
+
+volumes:
+  postgres_data:
