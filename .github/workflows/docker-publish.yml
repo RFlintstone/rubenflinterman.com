@@ -58,7 +58,7 @@ jobs:
 
   build-portfolio:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (contains(github.event.commits[0].modified, 'portfolio/') || contains(github.event.commits[0].added, 'portfolio/') || contains(github.event.commits[0].removed, 'portfolio/')) || (github.event_name == 'pull_request' && contains(github.event.pull_request.files, 'portfolio/'))
+    if: contains(github.event.commits[0].modified, 'portfolio/') || contains(github.event.commits[0].added, 'portfolio/') || contains(github.event.commits[0].removed, 'portfolio/')
     permissions:
       contents: read
       packages: write
