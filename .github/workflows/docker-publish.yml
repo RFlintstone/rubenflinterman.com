@@ -14,6 +14,7 @@ env:
 jobs:
   build-jekyll-blog:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && contains(github.event.commits[0].modified, 'blog/') || (github.event_name == 'pull_request' && contains(github.event.pull_request.files, 'blog/'))
     permissions:
       contents: read
       packages: write
@@ -57,6 +58,7 @@ jobs:
 
   build-portfolio:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && contains(github.event.commits[0].modified, 'portfolio/') || (github.event_name == 'pull_request' && contains(github.event.pull_request.files, 'portfolio/'))
     permissions:
       contents: read
       packages: write
@@ -96,6 +98,7 @@ jobs:
 
   build-api:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && contains(github.event.commits[0].modified, 'api/') || (github.event_name == 'pull_request' && contains(github.event.pull_request.files, 'api/'))
     permissions:
       contents: read
       packages: write
