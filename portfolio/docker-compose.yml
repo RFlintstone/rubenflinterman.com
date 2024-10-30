@@ -1,0 +1,6 @@
+﻿services:
+  portfolio:
+    image: portfolio
+    build:
+      context: .
+      dockerfile: Dockerfile
