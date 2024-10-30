@@ -5,6 +5,10 @@
       "PackagePath": "staticwebassets\\favicon.ico"
     },
     {
+      "Id": "C:\\Users\\rwfli\\Documents\\2. Ruben Flinterman\\rubenflinterman.com\\portfolio\\wwwroot\\images\\ruben.jpg",
+      "PackagePath": "staticwebassets\\images\\ruben.jpg"
+    },
+    {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.portfolio.props",
       "PackagePath": "build\\portfolio.props"
     },

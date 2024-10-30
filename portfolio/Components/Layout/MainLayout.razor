@@ -6,7 +6,7 @@
 <MudSnackbarProvider/>
 <MudLayout>
     <MudAppBar Elevation="0">
-        <MudText Typo="Typo.h5" Class="ml-1">Portfolio</MudText>
+        <MudText Typo="Typo.h5" Class="ml-1" Color="Color.Primary">My Portfolio</MudText>
         <MudSpacer/>
         <NavMenu/>
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
@@ -68,8 +68,10 @@
 
     private readonly PaletteDark _darkPalette = new()
     {
-        Primary = "#7e6fff",
-        Surface = "#1e1e2d",
+        Primary = "#d8dbe2",
+        // Primary = "#7e6fff",
+        Surface = "#1e1e1f",
+        // Surface = "#1e1e2d",
         Background = "#111213",
         // Background = "#1a1a27",
         BackgroundGray = "#151521",

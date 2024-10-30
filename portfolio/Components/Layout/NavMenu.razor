@@ -1,7 +1,14 @@
-﻿<MudNavMenu>
-    <div class="d-flex">
-        <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-        <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
-        <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
-    </div>
+﻿<MudNavMenu Class="d-flex flex-nowrap nav-container">
+    <MudNavLink Class="nav-link d-flex align-center justify-center" Href="/" Match="NavLinkMatch.All"
+                Icon="@Icons.Material.Filled.Home" Style="padding: 0; margin-right: 8px;">
+        Home
+    </MudNavLink>
+    <MudNavLink Class="nav-link d-flex align-center justify-center" Href="projects" Match="NavLinkMatch.Prefix"
+                Icon="@Icons.Material.Filled.Add" Style="padding: 0; margin-right: 8px; width: 140%">
+        My Projects
+    </MudNavLink>
+    <MudNavLink Class="nav-link d-flex align-center justify-center" Href="weather" Match="NavLinkMatch.Prefix"
+                Icon="@Icons.Material.Filled.List" Style="padding: 0; margin-right: 8px;">
+        Weather
+    </MudNavLink>
 </MudNavMenu>
