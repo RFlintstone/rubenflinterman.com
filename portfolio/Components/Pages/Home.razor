@@ -1,11 +1,12 @@
 ﻿@page "/"
+@using portfolio.Components.Text.Home
 @inject IWebHostEnvironment WebHostEnvironment
 
 <PageTitle>Home</PageTitle>
 
-<MudGrid Spacing="6" Justify="Justify.Center" Style="margin-top: 10px; margin-bottom: 10px;">
+<MudGrid Spacing="6" Justify="Justify.Center" Style="margin-top: 0px; margin-bottom: 10px;">
     <MudItem>
-        <MudPaper Height="80vh" Width="15vw" Class="d-flex flex-column align-center" Style="padding-top: 30px;">
+        <MudPaper Height="85vh" Width="15vw" Class="d-flex flex-column align-center" Style="padding-top: 30px;">
             <MudAvatar Style="height:140px; width:140px; font-size:3rem;" Color="Color.Primary">
                 @if (AvatarRubenExists)
                 {
@@ -20,54 +21,48 @@
             <div class="d-flex justify-center align-center flex-wrap">
                 <MudChip T="string" Label="true" Size="Size.Small">Full-Stack Developer</MudChip>
                 <MudChip T="string" Label="true" Size="Size.Small">Student</MudChip>
-                @* <MudChip T="string" Label="true" Size="Size.Small">Tech Enthusiast</MudChip> *@
-                @* <MudChip T="string" Label="true" Size="Size.Small">Hello World</MudChip> *@
             </div>
             <div>
                 <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Primary" aria-label="github" href="https://github.com/RFlintstone/" Target="_blank"/>
                 <MudIconButton Icon="@Icons.Custom.Brands.LinkedIn" Color="Color.Primary" aria-label="github" href="https://www.linkedin.com/in/ruben-flinterman/" Target="_blank"/>
             </div>
-            @* <div class="d-flex justify-center align-center flex-wrap"> *@
-            @*     <MudList T="string"> *@
-            @*         <MudListItem Icon="@Icons.Custom.Brands.GitHub" IconColor="Color.Primary" href="https://github.com/RFlintstone/" Target="_blank"> *@
-            @*             <MudText Color="Color.Primary">Github</MudText> *@
-            @*         </MudListItem> *@
-            @*         <MudDivider DividerType="DividerType.Inset" /> *@
-            @*         <MudListItem Icon="@Icons.Custom.Brands.LinkedIn" IconColor="Color.Primary" href="https://www.linkedin.com/in/ruben-flinterman/" Target="_blank"> *@
-            @*             <MudText Color="Color.Primary">LinkedIn</MudText> *@
-            @*         </MudListItem> *@
-            @*     </MudList> *@
-            @* </div> *@
         </MudPaper>
     </MudItem>
 
     <MudItem>
-        <MudPaper Height="80vh" Width="60vw" Class="d-flex flex-column justify-left align-start flex-wrap" Style="padding-top: 10px; padding-left: 25px;">
+        <MudPaper Height="85vh" Width="60vw" Class="d-flex flex-column justify-left align-start flex-wrap" Style="padding-top: 10px; padding-left: 25px;">
 
-            <div Style="width: 40vw; padding-top: 10px;">
+            <div Style="width: 55vw; padding-top: 10px;">
                 <MudText Typo="Typo.h5" Align="Align.Left" Class="mt-2" Color="Color.Primary"><b># About Me</b></MudText>
                 <MudText Typo="Typo.body1" Align="Align.Left" Class="mt-2" Color="Color.Primary" Style="display: inline; white-space: normal; word-wrap: break-word; overflow-wrap: break-word;">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                    <AboutMe/>
                 </MudText>
             </div>
 
-            <div Style="width: 40vw; padding-top: 10px;">
+            <div Style="width: 55vw; padding-top: 20px;">
                 <MudText Typo="Typo.h5" Align="Align.Left" Class="mt-2" Color="Color.Primary"><b># My Skills</b></MudText>
-                <MudText Typo="Typo.body1" Align="Align.Left" Class="mt-2" Color="Color.Primary" Style="display: inline; white-space: normal; word-wrap: break-word; overflow-wrap: break-word;">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                </MudText>
+                <MudText Color="Color.Primary">I'm familiar with the following languages, not in any particular order:</MudText>
+                <div class="d-flex justify-left align-left flex-wrap">
+                    <MudChip T="string" Label="true" Size="Size.Small">C</MudChip>
+                    <MudChip T="string" Label="true" Size="Size.Small">C#</MudChip>
+                    <MudChip T="string" Label="true" Size="Size.Small">C++</MudChip>
+                    <MudChip T="string" Label="true" Size="Size.Small">CSS3</MudChip>
+                    <MudChip T="string" Label="true" Size="Size.Small">HTML5</MudChip>
+                    <MudChip T="string" Label="true" Size="Size.Small">Java</MudChip>
+                    <MudChip T="string" Label="true" Size="Size.Small">Javascript</MudChip>
+                    <MudChip T="string" Label="true" Size="Size.Small">PHP</MudChip>
+                    <MudChip T="string" Label="true" Size="Size.Small">Typescript</MudChip>
+                </div>
             </div>
 
-            <div Style="width: 40vw; padding-top: 10px;">
+            <div Style="width: 55vw; padding-top: 20px;">
                 <MudText Typo="Typo.h5" Align="Align.Left" Class="mt-2" Color="Color.Primary"><b># Projects</b></MudText>
                 <MudText Typo="Typo.body1" Align="Align.Left" Class="mt-2" Color="Color.Primary" Style="display: inline; white-space: normal; word-wrap: break-word; overflow-wrap: break-word;">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                    <MyProjects/>
                 </MudText>
             </div>
-
         </MudPaper>
     </MudItem>
-
 </MudGrid>
 
 @code {
