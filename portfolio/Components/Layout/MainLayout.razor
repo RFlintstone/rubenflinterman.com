@@ -56,14 +56,43 @@
         _isDarkMode = !_isDarkMode;
     }
 
+    // private readonly PaletteLight _lightPalette = new()
+    // {
+    //     Black = "#110e2d",
+    //     AppbarText = "#424242",
+    //     AppbarBackground = "rgba(255,255,255,0.8)",
+    //     DrawerBackground = "#ffffff",
+    //     GrayLight = "#e8e8e8",
+    //     GrayLighter = "#f9f9f9",
+    // };
+    
     private readonly PaletteLight _lightPalette = new()
     {
-        Black = "#110e2d",
-        AppbarText = "#424242",
-        AppbarBackground = "rgba(255,255,255,0.8)",
-        DrawerBackground = "#ffffff",
-        GrayLight = "#e8e8e8",
-        GrayLighter = "#f9f9f9",
+        Primary = "#4a86ff", 
+        Surface = "#ffffff", 
+        Background = "#f5f5f5", 
+        BackgroundGray = "#e0e0e0", 
+        AppbarText = "#424242", 
+        AppbarBackground = "rgba(255,255,255,0.8)", 
+        DrawerBackground = "#ffffff", 
+        ActionDefault = "#6d6b80", 
+        ActionDisabled = "#bdbdbd4d", 
+        ActionDisabledBackground = "#f0f0f04d", 
+        TextPrimary = "#2e2e3a", 
+        TextSecondary = "#5c5c70",
+        TextDisabled = "#00000033", 
+        DrawerIcon = "#616161", 
+        DrawerText = "#616161", 
+        GrayLight = "#e8e8e8", 
+        GrayLighter = "#f9f9f9", 
+        Info = "#1976d2", 
+        Success = "#388e3c",
+        Warning = "#fbc02d", 
+        Error = "#d32f2f",
+        LinesDefault = "#d0d0d0",
+        TableLines = "#d0d0d0", 
+        Divider = "#e0e0e0", 
+        OverlayLight = "#ffffff80",
     };
 
     private readonly PaletteDark _darkPalette = new()
