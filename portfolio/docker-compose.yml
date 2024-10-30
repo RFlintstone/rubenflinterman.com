@@ -1,7 +1,6 @@
-services:
+﻿services:
   portfolio:
-    build: .
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=default
+    image: portfolio
+    build:
+      context: .
+      dockerfile: Dockerfile

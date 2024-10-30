@@ -1,34 +1,46 @@
-# Build stage
-FROM ubuntu:22.04 AS build
-
-# Install dependencies and Java
-RUN apt-get update && \
-    apt-get install -y wget unzip software-properties-common && \
-    add-apt-repository ppa:openjdk-r/ppa && \
-    apt-get update && \
-    apt-get install -y openjdk-21-jdk-headless && \
-    rm -rf /var/lib/apt/lists/*
-
-# Set environment variables
-RUN JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java)))) && \
-    echo "export JAVA_HOME=$JAVA_HOME" >> /etc/environment && \
-    echo "export PATH=$PATH:$JAVA_HOME/bin" >> /etc/environment
-
-# Copy project files
-COPY . /app
+﻿# Start with the SDK image for AMD64
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:8.0 AS build-amd64
 WORKDIR /app
 
-# Ensure Gradle wrapper is executable
-RUN chmod +x gradlew
+# Copy and restore as distinct layers
+COPY *.csproj ./
+RUN dotnet restore -r linux-x64
 
-# Build the project using Gradle wrapper
-RUN . /etc/environment && ./gradlew build --stacktrace
+# Copy everything else and build
+COPY . ./
+RUN dotnet publish -c Release -o out -r linux-x64 --self-contained false --no-restore
 
-# Final stage
-FROM openjdk:21-slim
+# Build ARM64 version
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:8.0 AS build-arm64
+WORKDIR /app
 
-# Copy the built artifact from the build stage
-COPY --from=build /app/build/libs/portfolio-0.0.1-SNAPSHOT.jar /app.jar
+# Copy and restore as distinct layers
+COPY *.csproj ./
+RUN dotnet restore -r linux-arm64
 
-# Set the entrypoint
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+# Copy everything else and build
+COPY . ./
+RUN dotnet publish -c Release -o out -r linux-arm64 --self-contained false --no-restore
+
+# Runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy AS runtime
+WORKDIR /app
+
+# Create directory for data protection keys
+RUN mkdir /app/keys && chown -R 1000:1000 /app/keys
+
+# Expose both ports
+EXPOSE 8080
+EXPOSE 8081
+
+# Copy the appropriate build output
+FROM runtime AS final-amd64
+COPY --from=build-amd64 /app/out ./
+ENTRYPOINT ["dotnet", "Api.dll"]
+
+FROM runtime AS final-arm64
+COPY --from=build-arm64 /app/out ./
+ENTRYPOINT ["dotnet", "Api.dll"]
+
+# Use a multi-stage build to select the appropriate final image
+FROM final-${TARGETARCH}
