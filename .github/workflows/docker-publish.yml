@@ -82,8 +82,16 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Check for modified files
+        id: check-modified
+        run: |
+          MODIFIED_FILES=$(echo "${{ toJson(github.event.commits) }}" | jq -r '.[0].modified[]')
+          echo "Modified files: $MODIFIED_FILES"
+          echo "modified_files=$MODIFIED_FILES" >> $GITHUB_ENV
 
       - name: Build and push Docker image
+        if: contains(env.modified_files, 'portfolio/')
         id: build-and-push
         uses: docker/build-push-action@v5.0.0
         with:
