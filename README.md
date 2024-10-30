@@ -1,4 +1,4 @@
-# rubenflinterman.com
+# rubenflinterman.com [![Docker](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/docker-publish.yml)
 This repository contains the development of my personal website and API, hosted at https://rubenflinterman.com. It exists out of the following components:
 
 ## Portfolio (v1) - rubenflinterman.com
@@ -10,7 +10,7 @@ A C# API project designed to support the functionality of the website:
 - Docker Setup: Using Docker for easy deployment, with a focus on database and Adminer integration.
 - JWT Support: Implementing JWT for secure access and token management.
 
-## Blog (v0) - blog.rubenflinterman.com
+## Blog (v0) - blog.rubenflinterman.com [![Docker](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/docker-publish.yml/badge.svg?event=registry_package)](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/docker-publish.yml)
 A Jekyll-based blog which I'd like to replace with a self-created blog system in v1.
 The new version should load blog posts from a database however the included text editor should support full markdown.
 
