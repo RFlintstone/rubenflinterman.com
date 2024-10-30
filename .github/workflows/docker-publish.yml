@@ -80,12 +80,18 @@ jobs:
           REPO=${{ github.repository }}
         
           # Fetching the modified files using GitHub API
-          MODIFIED_FILES=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/$REPO/pulls/$PR_NUMBER/files" | \
-            jq -r '.[] | select(.filename | startswith("portfolio/")) | .filename')
+          RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/$REPO/pulls/$PR_NUMBER/files")
         
-          echo "Modified files: $MODIFIED_FILES"
-          echo "modified_files=$MODIFIED_FILES" >> $GITHUB_ENV
+          # Check if the response is valid JSON
+          if echo "$RESPONSE" | jq . >/dev/null 2>&1; then
+            MODIFIED_FILES=$(echo "$RESPONSE" | jq -r '.[] | select(.filename | startswith("portfolio/")) | .filename')
+            echo "Modified files: $MODIFIED_FILES"
+            echo "modified_files=$MODIFIED_FILES" >> $GITHUB_ENV
+          else
+            echo "Failed to fetch modified files. Response: $RESPONSE"
+            exit 1
+          fi
           
       - name: Common steps
         id: common-steps
