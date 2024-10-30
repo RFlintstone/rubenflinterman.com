@@ -73,16 +73,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Common steps
-        id: common-steps
-        uses: ./.github/actions/common-steps
-        with:
-          context: ./portfolio
-          image_name: ${{ env.IMAGE_NAME }}-portfolio
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
       - name: Get list of modified files in PR
         id: get-modified-files
         run: |
@@ -96,6 +86,17 @@ jobs:
         
           echo "Modified files: $MODIFIED_FILES"
           echo "modified_files=$MODIFIED_FILES" >> $GITHUB_ENV
+          
+      - name: Common steps
+        id: common-steps
+        uses: ./.github/actions/common-steps
+        with:
+          context: ./portfolio
+          image_name: ${{ env.IMAGE_NAME }}-portfolio
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
 
       - name: Build and push Docker image
         if: contains(env.modified_files, 'portfolio/')
