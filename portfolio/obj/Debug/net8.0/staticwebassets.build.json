@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "Hsuk86ebRlqR3w6p5BwjZf8IZfc8pZZCkn3YgyH0xTw=",
+  "Hash": "vk496RlAvCw6xfab1WVYop8OLWxsshy3OgDLxh55WqU=",
   "Source": "portfolio",
   "BasePath": "_content/portfolio",
   "Mode": "Default",
@@ -72,6 +72,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\favicon.ico"
+    },
+    {
+      "Identity": "C:\\Users\\rwfli\\Documents\\2. Ruben Flinterman\\rubenflinterman.com\\portfolio\\wwwroot\\favicon.old.ico",
+      "SourceId": "portfolio",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\rwfli\\Documents\\2. Ruben Flinterman\\rubenflinterman.com\\portfolio\\wwwroot\\",
+      "BasePath": "_content/portfolio",
+      "RelativePath": "favicon.old.ico",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\favicon.old.ico"
     },
     {
       "Identity": "C:\\Users\\rwfli\\Documents\\2. Ruben Flinterman\\rubenflinterman.com\\portfolio\\wwwroot\\images\\ruben.jpg",
