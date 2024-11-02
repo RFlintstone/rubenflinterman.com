@@ -9,8 +9,16 @@
       "PackagePath": "staticwebassets\\favicon.old.ico"
     },
     {
-      "Id": "C:\\Users\\rwfli\\Documents\\2. Ruben Flinterman\\rubenflinterman.com\\portfolio\\wwwroot\\images\\ruben.jpg",
-      "PackagePath": "staticwebassets\\images\\ruben.jpg"
+      "Id": "C:\\Users\\rwfli\\Documents\\2. Ruben Flinterman\\rubenflinterman.com\\portfolio\\wwwroot\\images\\jpg\\placeholder.jpg",
+      "PackagePath": "staticwebassets\\images\\jpg\\placeholder.jpg"
+    },
+    {
+      "Id": "C:\\Users\\rwfli\\Documents\\2. Ruben Flinterman\\rubenflinterman.com\\portfolio\\wwwroot\\images\\jpg\\ruben.jpg",
+      "PackagePath": "staticwebassets\\images\\jpg\\ruben.jpg"
+    },
+    {
+      "Id": "C:\\Users\\rwfli\\Documents\\2. Ruben Flinterman\\rubenflinterman.com\\portfolio\\wwwroot\\images\\webp\\rara.webp",
+      "PackagePath": "staticwebassets\\images\\webp\\rara.webp"
     },
     {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.portfolio.props",

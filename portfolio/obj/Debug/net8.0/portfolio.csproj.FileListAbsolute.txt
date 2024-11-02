@@ -1,5 +1,13 @@
+C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\portfolio.csproj.AssemblyReference.cache
+C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\portfolio.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\portfolio.AssemblyInfoInputs.cache
+C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\portfolio.AssemblyInfo.cs
+C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\portfolio.csproj.CoreCompileInputs.cache
+C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\portfolio.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\portfolio.sourcelink.json
 C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\bin\Debug\net8.0\appsettings.json
+C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\bin\Debug\net8.0\Properties\MyWork.json
 C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\bin\Debug\net8.0\portfolio.staticwebassets.runtime.json
 C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\bin\Debug\net8.0\portfolio.exe
 C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\bin\Debug\net8.0\portfolio.deps.json
@@ -18,13 +26,6 @@ C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\bin\D
 C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\bin\Debug\net8.0\Microsoft.Extensions.Options.dll
 C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\bin\Debug\net8.0\Microsoft.JSInterop.dll
 C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\bin\Debug\net8.0\MudBlazor.dll
-C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\portfolio.csproj.AssemblyReference.cache
-C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\portfolio.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\portfolio.AssemblyInfoInputs.cache
-C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\portfolio.AssemblyInfo.cs
-C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\portfolio.csproj.CoreCompileInputs.cache
-C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\portfolio.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\portfolio.sourcelink.json
 C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\staticwebassets.development.json
 C:\Users\rwfli\Documents\2. Ruben Flinterman\rubenflinterman.com\portfolio\obj\Debug\net8.0\staticwebassets\msbuild.portfolio.Microsoft.AspNetCore.StaticWebAssets.props
