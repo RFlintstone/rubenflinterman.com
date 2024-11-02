@@ -1,5 +1,6 @@
 using MudBlazor.Services;
 using portfolio.Components;
+using portfolio.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,9 @@ builder.Services.AddMudServices();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Register the ProjectService
+builder.Services.AddScoped<IProjectService>(sp => new ProjectService(Path.Combine(sp.GetRequiredService<IHostEnvironment>().ContentRootPath, "Properties", "MyWork.json")));
 
 var app = builder.Build();
 
