@@ -26,11 +26,12 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public IActionResult PostLogin([FromBody] AuthLoginModel model)
     {
+
         // Fetch data synchronously
         var user = _dbContext.Users.ToList().FirstOrDefault(u =>
             u.Email == model.Username &&
             u.Token == model.Password &&
-            // u.Password == _encryptionService.EncryptSha256(model.Password) &&
+            // u.Password == Convert.ToBase64String(_encryptionService.Encrypt(model.Password)) &&
             u.TokenCreated < DateTime.UtcNow &&
             u.TokenExpiry > DateTime.UtcNow
         );
