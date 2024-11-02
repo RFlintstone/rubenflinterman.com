@@ -2,17 +2,9 @@ name: Docker
 
 on:
   push:
-    paths:
-      - 'blog/**'
-      - 'portfolio/**'
-      - 'api/**'
     branches: [ "main" ]
     tags: [ 'v*.*.*' ]
   pull_request:
-    paths: 
-      - 'blog/**'
-      - 'portfolio/**'
-      - 'api/**'
     branches: [ "main" ]
 
 env:
@@ -73,7 +65,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-          
+
       - name: Common steps
         id: common-steps
         uses: ./.github/actions/common-steps
@@ -83,9 +75,8 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Build and push Docker image
-        if: contains(env.modified_files, 'portfolio/')
         id: build-and-push
         uses: docker/build-push-action@v5.0.0
         with:
