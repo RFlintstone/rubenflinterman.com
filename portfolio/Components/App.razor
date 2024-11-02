@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="scrollbar-color: #c4c4c400 transparent;">
 
 <head>
     <meta charset="utf-8"/>
@@ -23,36 +23,7 @@
 <style>
     body {
         margin: 0; /* Remove default margins */
-        height: 100vh; /* Make sure the body takes the full height */
-        overflow: hidden; /* Prevent scroll bars from appearing */
-        background-color: black; /* Set background color to black for contrast */
-        position: relative; /* Set position to relative for absolute positioning of other content */
-        color: white; /* Default text color */
-        font-family: Arial, sans-serif; /* Set font for better readability */
-    }
-    #result {
-        position: absolute; /* Position it on the body */
-        top: 10px; /* Adjust top position */
-        left: 10px; /* Adjust left position */
-        z-index: 2; /* Ensure the result is above other content */
-        pointer-events: none; /* Make sure mouse events pass through this element */
-    }
-    .circle {
-        position: absolute; /* Position circles absolutely */
-        border-radius: 50%; /* Make them round */
-        border: 2px solid white; /* Set border color */
-        pointer-events: none; /* Allow mouse events to pass through */
-    }
-    
-    #gradient {
-        position: absolute;
-        width: 500px; /* Initial size */
-        height: 500px; /* Initial size */
-        border-radius: 50%; /* Circle shape */
-        pointer-events: none; /* Prevent interference with mouse events */
-        background: radial-gradient(circle, rgba(74, 134, 255, 1) 0%, rgba(255, 255, 255, 0), transparent);
-        transform: translate(-50%, -50%); /* Center the gradient */
-        transition: width 0.2s ease, height 0.2s ease; /* Smooth size transition */
+        position: relative; /* Set position to relative for absolute positioning of other content *//
     }
 </style>
 
@@ -110,7 +81,7 @@
             hitBorder = 'right';
         } else if (circle.y - circle.radius < canvasTop-150) {
             hitBorder = 'top';
-        } else if (circle.y + circle.radius > canvasBottom+10) {
+        } else if (circle.y + circle.radius > canvasBottom) {
             hitBorder = 'bottom';
         }
 
