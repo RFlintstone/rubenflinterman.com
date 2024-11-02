@@ -5,29 +5,34 @@
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 <MudLayout>
-    <MudAppBar Elevation="0">
-        <MudText Typo="Typo.h5" Class="ml-1" Color="Color.Primary">My Portfolio</MudText>
+    <MudAppBar Elevation="0" Style="display:flex">
+        <MudText Typo="Typo.subtitle2" Class="ml-1" Color="Color.Primary">Europe/Rotterdam</MudText>
         <MudSpacer/>
-        <NavMenu/>
+        <div style="position:absolute; left:50%; transform:translateX(-50%);">
+            <NavMenu/>
+        </div>        
+        <MudSpacer/>
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
-        <MudMenu
-            FullWidth="false"
-            ActivationEvent="@MouseEvent.MouseOver"
-            AnchorOrigin="Origin.BottomRight"
-            TransformOrigin="Origin.TopLeft"
-            Icon="@Icons.Material.Filled.MoreVert"
-            Color="Color.Inherit"
-            Edge="Edge.End"
-            AriaLabel="Open user menu">
-            <MudMenuItem>Profile</MudMenuItem>
-            <MudMenuItem>My account</MudMenuItem>
-            <MudMenuItem>Logout</MudMenuItem>
-        </MudMenu>
+        @* <MudMenu *@
+        @*     FullWidth="false" *@
+        @*     ActivationEvent="@MouseEvent.MouseOver" *@
+        @*     AnchorOrigin="Origin.BottomRight" *@
+        @*     TransformOrigin="Origin.TopLeft" *@
+        @*     Icon="@Icons.Material.Filled.MoreVert" *@
+        @*     Color="Color.Inherit" *@
+        @*     Edge="Edge.End" *@
+        @*     AriaLabel="Open user menu"> *@
+        @*     <MudMenuItem>Profile</MudMenuItem> *@
+        @*     <MudMenuItem>My account</MudMenuItem> *@
+        @*     <MudMenuItem>Logout</MudMenuItem> *@
+        @* </MudMenu> *@
     </MudAppBar>
     <MudMainContent Class="mt-16 pa-4">
+        <div class=""></div>
         @Body
     </MudMainContent>
 </MudLayout>
+
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
@@ -104,7 +109,7 @@
         Background = "#111213",
         // Background = "#1a1a27",
         BackgroundGray = "#151521",
-        AppbarText = "#92929f",
+        AppbarText = "#dadae0",
         AppbarBackground = "rgba(17,18,19,0.8)",
         // AppbarBackground = "rgba(26,26,39,0.8)",
         DrawerBackground = "#1a1a27",
@@ -114,7 +119,7 @@
         TextPrimary = "#b2b0bf",
         TextSecondary = "#92929f",
         TextDisabled = "#ffffff33",
-        DrawerIcon = "#92929f",
+        DrawerIcon = "#dadae0",
         DrawerText = "#92929f",
         GrayLight = "#2a2833",
         GrayLighter = "#1e1e2d",
