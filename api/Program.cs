@@ -4,6 +4,7 @@ using Api.Datastore;
 using Api.Services.Auth;
 using Api.Services.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -15,7 +16,7 @@ class Program
     {
         // Create the web application.
         var builder = WebApplication.CreateBuilder(args);
-        
+
         // Configure logging
         builder.Logging.ClearProviders(); // Optional: Clears existing logging providers
         builder.Logging.AddConsole(); // Adds console logging
@@ -28,6 +29,8 @@ class Program
             serverOptions.ListenAnyIP(8081);
             serverOptions.ListenAnyIP(3001);
         });
+
+        builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(@"/keys/"));
 
         // Add services to the container.
         builder.Services.AddControllers();
@@ -66,9 +69,8 @@ class Program
         // Configure DB context
         builder.Services.AddDbContext<DatabaseContext>(
             options => options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
-        
+
         // Startup
         Startup.Start(builder);
     }
 }
-
