@@ -1,9 +1,11 @@
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Api.Controllers.Auth;
 using Api.Datastore;
 using Api.Services.Auth;
 using Api.Services.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -15,7 +17,8 @@ class Program
     {
         // Create the web application.
         var builder = WebApplication.CreateBuilder(args);
-        
+        bool isInDocker = builder.Configuration.GetValue<bool>("RUNNING_IN_DOCKER");
+
         // Configure logging
         builder.Logging.ClearProviders(); // Optional: Clears existing logging providers
         builder.Logging.AddConsole(); // Adds console logging
@@ -28,6 +31,7 @@ class Program
             serverOptions.ListenAnyIP(8081);
             serverOptions.ListenAnyIP(3001);
         });
+
 
         // Add services to the container.
         builder.Services.AddControllers();
@@ -44,6 +48,16 @@ class Program
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .Build();
+
+        // Load the X.509 certificate
+        if (!isInDocker)
+        {
+            var certificatePath = Path.Combine(Directory.GetCurrentDirectory(), "certificate.pfx");
+            var certificate = new X509Certificate2(certificatePath, configuration["Encryption:Key"]);
+            builder.Services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(@"/keys/"))
+                .ProtectKeysWithCertificate(certificate);
+        }
 
         // Add JWT authentication
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -66,9 +80,8 @@ class Program
         // Configure DB context
         builder.Services.AddDbContext<DatabaseContext>(
             options => options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
-        
+
         // Startup
         Startup.Start(builder);
     }
 }
-
