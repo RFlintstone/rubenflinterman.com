@@ -32,6 +32,7 @@
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080;http://+:8081
       - RUNNING_IN_DOCKER=true
+      - "Certificate__Key="
       - "Encryption__Key=g3BckHsj+wWRseOya1dz6u+NSBkL5laHm5mSmDr3qqA="
       - "Encryption__IV=gomY07dGhzMiUPnJp/JTuA=="
       - "JwtSettings__Issuer=localhost"

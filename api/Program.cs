@@ -53,7 +53,7 @@ class Program
         if (!isInDocker)
         {
             var certificatePath = Path.Combine(Directory.GetCurrentDirectory(), "certificate.pfx");
-            var certificate = new X509Certificate2(certificatePath, configuration["Encryption:Key"]);
+            var certificate = new X509Certificate2(certificatePath, configuration["Certificate:Key"]);
             builder.Services.AddDataProtection()
                 .PersistKeysToFileSystem(new DirectoryInfo(@"/keys/"))
                 .ProtectKeysWithCertificate(certificate);
