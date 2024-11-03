@@ -41,6 +41,7 @@
 
     volumes:
       - ./keys:/app/keys
+      - ./certificate.pfx:/app/certificate.pfx
 
 volumes:
   postgres_data:
