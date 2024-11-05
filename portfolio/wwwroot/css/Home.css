@@ -1,0 +1,26 @@
+﻿/* Styles for Home.razor */
+
+.page-container {
+    margin-left: 2vw;
+}
+
+.intro-text-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 25vh;
+    margin-left: 30vw;
+}
+
+.intro-heading {
+    margin-left: 1vw; /* Adjusted to match Class="ml-1" */
+}
+
+.intro-subheading {
+    margin-left: 1vw; /* Adjusted to match Class="ml-1" */
+}
+
+.chip-container {
+    display: flex;
+    margin-top: 0.4vh;
+    margin-left: 30.7vw;
+}

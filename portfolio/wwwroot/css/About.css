@@ -1,0 +1,112 @@
+﻿/* Main container styling */
+.about-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 1vh;
+    width: 100%;
+}
+
+/* Centered main content area */
+.about-content {
+    max-width: 50vw;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Avatar and location section */
+.about-avatar-section {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1.5vh;
+}
+
+.about-avatar-column {
+    margin-top: 1.3vh;
+    margin-right: 1.5vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.about-avatar {
+    width: 130px !important;
+    height: auto !important;
+}
+
+.about-location {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-top: 5px;
+}
+
+.about-location-icon {
+    margin-right: 5px;
+}
+
+/* Main content column styling */
+.about-main-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.about-heading {
+    font-weight: bold;
+}
+
+.about-subheading {
+    font-weight: normal;
+}
+
+.social-buttons {
+    display: flex;
+    flex-direction: row;
+    margin-top: 5px;
+}
+
+.social-button {
+    padding: 4px 8px;
+    border: solid 1px #3f3f3f;
+    border-radius: 10px;
+}
+
+.social-button + .social-button {
+    margin-left: 5px;
+}
+
+/* Main content text */
+.about-text {
+    margin-top: 1vh;
+}
+
+/* Notable projects section */
+.projects-section {
+    margin-top: 1.5vh;
+}
+
+.project-heading {
+    font-weight: bold;
+}
+
+.project-list {
+    list-style-type: disc;
+    margin: 0;
+    padding-left: 20px;
+}
+
+.project-item {
+    padding: 5px 0;
+}
+
+.project-space-column {
+    padding-right: 20px;
+}
+
+.project-role {
+    padding: 5px 0;
+}
+
+.project-date {
+    padding-top: 10px;
+}

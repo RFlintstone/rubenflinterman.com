@@ -1,52 +1,52 @@
 ﻿@page "/about"
-
+<link href="css/About.css" rel="stylesheet">
 
 <PageTitle>About Me</PageTitle>
 
-<div style="display: flex; justify-content: center; margin-top: 1vh; width: 100%;">
-    <div style="max-width: 50vw; display: flex; flex-direction: column;"> <!-- Main content area with centered container -->
+<div class="about-container">
+    <div class="about-content">
 
         <!-- Avatar and Location Information Section -->
-        <div style="display: flex; align-items: flex-start; margin-bottom: 1.5vh;">
+        <div class="about-avatar-section">
             <!-- Avatar and Spacer Column -->
-            <div style="margin-right: 20px; display: flex; flex-direction: column; align-items: center;">
-                <MudAvatar style="width: 130px; height: auto;">
+            <div class="about-avatar-column">
+                <MudAvatar Class="about-avatar">
                     <MudImage Src="images/jpg/ruben.jpg" Alt="Ruben Flinterman" style="width: 100%; height: 100%; object-fit: cover;"></MudImage>
                 </MudAvatar>
-                <div style="display: flex; align-items: center; justify-content: center; text-align: center; margin-top: 5px;">
-                    <MudIcon Icon="@Icons.Material.Outlined.LocationOn" Size="Size.Small" style="margin-right: 5px;"/>
+                <div class="about-location">
+                    <MudIcon Icon="@Icons.Material.Outlined.LocationOn" Size="Size.Small" Class="about-location-icon" />
                     <MudText Typo="Typo.subtitle1">Europe/Rotterdam</MudText>
                 </div>
 
                 <!-- Empty Space for Additional Details -->
-                <div style="height: 300px;"> <!-- Adjust height as needed -->
-                    <!-- This space can be used for additional details later -->
-                </div>
+                <div style="height: 300px;"></div> <!-- Adjust height as needed -->
             </div>
 
             <!-- Main Content Column -->
-            <div style="display: flex; flex-direction: column;">
-                <MudText Typo="Typo.h2">
+            <div class="about-main-column">
+                <MudText Typo="Typo.h2" Class="about-heading">
                     <b>Ruben Flinterman</b>
                 </MudText>
-                <MudText Typo="Typo.h4" Style="font-weight: normal;">Software Developer</MudText>
-                <div style="display: flex; flex-direction: row; margin-top: 5px;">
-                    <MudButton Variant="Variant.Filled" 
-                               StartIcon="@Icons.Custom.Brands.GitHub" 
-                               IconColor="Color.Primary" 
-                               Size="Size.Medium" 
+                <MudText Typo="Typo.h4" Class="about-subheading">Software Developer</MudText>
+                <div class="social-buttons">
+                    <MudButton Variant="Variant.Filled"
+                               StartIcon="@Icons.Custom.Brands.GitHub"
+                               IconColor="Color.Primary"
+                               Size="Size.Medium"
                                Href="https://github.com/RFlintstone/"
                                Target="_blank"
-                               style="padding: 4px 8px; border: solid 1px #3f3f3f; border-radius: 10px;">GitHub</MudButton>
-                    <MudButton Variant="Variant.Filled" 
-                               StartIcon="@Icons.Custom.Brands.LinkedIn" 
-                               IconColor="Color.Primary" Size="Size.Medium" 
+                               Class="social-button">GitHub</MudButton>
+                    <MudButton Variant="Variant.Filled"
+                               StartIcon="@Icons.Custom.Brands.LinkedIn"
+                               IconColor="Color.Primary"
+                               Size="Size.Medium"
                                Href="https://www.linkedin.com/in/ruben-flinterman/"
                                Target="_blank"
-                               style="margin-left: 5px; padding: 4px 8px; border: solid 1px #3f3f3f; border-radius: 10px;">LinkedIn</MudButton>
+                               Class="social-button">LinkedIn</MudButton>
                 </div>
+
                 <!-- Main Content Text -->
-                <div>
+                <div class="about-text">
                     <br/>
                     <MudText Typo="Typo.body1">
                         I’m Ruben Flinterman, a Computer Science student based in Rotterdam, Netherlands. Currently, I’m focused on my studies at Rotterdam University of Applied Sciences.
@@ -56,29 +56,30 @@
                         In 2019, 2022, and 2023, I participated in some competitions with friends, which led to us winning a few cool prizes. I also have a few personal projects that I’m working on in my free time.
                     </MudText>
                 </div>
+
                 <!-- Notable Projects Section -->
-                <div style="margin-top: 1.5vh;">
-                    <MudText Typo="Typo.h3">
+                <div class="projects-section">
+                    <MudText Typo="Typo.h3" Class="project-heading">
                         <b>Notable Projects</b>
                     </MudText>
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 1vh;">
+                    <table style="width: 100%; border-collapse: collapse;">
                         <tr>
-                            <td style="padding-right: 20px;">
-                                <MudText Typo="Typo.h5" Style="font-weight: bold;">ProjectsIncluded</MudText>
+                            <td class="project-space-column">
+                                <MudText Typo="Typo.h5" Class="project-heading">ProjectsIncluded</MudText>
                             </td>
-                            <td style="padding-right: 20px;">&nbsp;</td> <!-- Space column -->
+                            <td class="project-space-column">&nbsp;</td> <!-- Space column -->
                             <td>
                                 <MudText Typo="Typo.body1">2024 - Current</MudText>
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="3" style="padding: 5px 0;">
+                            <td colspan="3" class="project-role">
                                 <MudText Typo="Typo.subtitle1">Founder</MudText>
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="3" style="padding: 5px 0;">
-                                <ul style="list-style-type: disc; margin: 0; padding-left: 20px;">
+                            <td colspan="3" class="project-item">
+                                <ul class="project-list">
                                     <li><MudText Typo="Typo.body1">Project description point 1.</MudText></li>
                                     <li><MudText Typo="Typo.body1">Project description point 2.</MudText></li>
                                     <li><MudText Typo="Typo.body1">Project description point 3.</MudText></li>
@@ -86,29 +87,28 @@
                             </td>
                         </tr>
                         <tr>
-                            <td style="padding-top: 10px; padding-right: 20px;">
-                                <MudText Typo="Typo.h5" Style="font-weight: bold;">Project 2</MudText>
+                            <td class="project-date project-space-column">
+                                <MudText Typo="Typo.h5" Class="project-heading">Project 2</MudText>
                             </td>
-                            <td style="padding-right: 20px;">&nbsp;</td> <!-- Space column -->
+                            <td class="project-space-column">&nbsp;</td> <!-- Space column -->
                             <td>
                                 <MudText Typo="Typo.body1">Jan. 2024 - Sept. 2024</MudText>
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="3" style="padding: 5px 0;">
+                            <td colspan="3" class="project-role">
                                 <MudText Typo="Typo.subtitle1">Developer</MudText>
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="3" style="padding: 5px 0;">
-                                <ul style="list-style-type: disc; margin: 0; padding-left: 20px;">
+                            <td colspan="3" class="project-item">
+                                <ul class="project-list">
                                     <li><MudText Typo="Typo.body1">Project description point 1.</MudText></li>
                                     <li><MudText Typo="Typo.body1">Project description point 2.</MudText></li>
                                     <li><MudText Typo="Typo.body1">Project description point 3.</MudText></li>
                                 </ul>
                             </td>
                         </tr>
-                        <!-- Additional projects can go here -->
                     </table>
                 </div>
             </div>

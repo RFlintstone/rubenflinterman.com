@@ -1,0 +1,70 @@
+﻿/* Centering main container */
+.main-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 1vh;
+    width: 100%;
+}
+
+/* Limiting the max width and arranging content vertically */
+.content-container {
+    max-width: 50vw;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Aligning title text to center */
+.title-text {
+    align-self: center;
+}
+
+/* Margin for the main content section */
+.main-content {
+    margin-top: 1.5vh;
+}
+
+/* Project card styling */
+.project-card {
+    margin-top: 1vh;
+    padding: 1.5vh;
+}
+
+/* Header text styling */
+.project-header-text {
+    font-weight: bold;
+}
+
+/* Project date alignment */
+.project-date {
+    margin-left: auto;
+}
+
+/* Role styling with spacing adjustments */
+.project-role {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* Content text styling */
+.project-content-text {
+    padding-top: 0;
+}
+
+/* List styling for project features */
+.project-features-list {
+    list-style: disc;
+    margin-left: 1vw;
+}
+
+/* Image styling */
+.project-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.project-image {
+    margin-right: 1vw;
+    height: fit-content;
+    width: 104%;
+}
