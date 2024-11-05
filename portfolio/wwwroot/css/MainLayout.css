@@ -1,0 +1,121 @@
+﻿.centered-nav {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.nav-seperator {
+    position: absolute;
+    top: 49%;
+    transform: translateY(-90%);
+    left: 17%;
+}
+
+@media only screen and (max-width: 1024px) {
+    .centered-nav {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .centered-nav {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+@media only screen and (max-width: 425px) {
+    .centered-nav {
+        position: fixed; /* Fixed to the viewport */
+        left: 50%; /* Center it in the viewport */
+        transform: translateX(-50%); /* Correct the centering */
+        width: auto; /* Avoid stretching it to 100% */
+    }
+}
+
+@media only screen and (max-width: 375px) {
+    .centered-nav {
+        position: fixed; /* Fixed to the viewport */
+        left: 50%; /* Center it in the viewport */
+        transform: translateX(-50%); /* Correct the centering */
+        width: auto; /* Avoid stretching it to 100% */
+    }
+}
+
+@media only screen and (max-width: 320px) {
+    .centered-nav {
+        position: fixed; /* Fixed to the viewport */
+        left: 50%; /* Center it in the viewport */
+        transform: translateX(-50%); /* Correct the centering */
+        width: auto; /* Avoid stretching it to 100% */
+    }
+}
+
+
+
+/* Disable nav buttons when the screen is small */
+@media only screen and (max-width: 1440px) {
+    .location-text {
+        display: none;
+    }
+    
+    .DarkmodeToggle {
+        display: none;
+    }
+}
+
+/* Enable nav buttons when the screen is big enough */
+@media only screen and (min-width: 1440px) {
+    .location-text {
+        display: block;
+    }
+
+    .DarkmodeToggle {
+        display: block;
+    }
+}
+
+/* App bar styling */
+.app-bar {
+    display: flex;
+}
+
+/* Location text styling */
+.location-text {
+    margin-left: 1rem;
+}
+
+/* Centering nav menu */
+.centered-nav {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Main content area */
+.main-content {
+    margin-top: 4rem;
+    padding: 1rem;
+}
+
+/* Error UI styling */
+#blazor-error-ui {
+    background-color: #ffdddd;
+    padding: 10px;
+    border: 1px solid #ff0000;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-weight: bold;
+}
+
+#blazor-error-ui .reload,
+#blazor-error-ui .dismiss {
+    margin-left: 15px;
+    color: #0000ee;
+    cursor: pointer;
+    text-decoration: underline;
+}

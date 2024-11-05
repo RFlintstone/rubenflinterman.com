@@ -1,4 +1,6 @@
-﻿<MudNavMenu Class="nav d-flex flex-nowrap nav-container">
+﻿<link href="css/Nav.css" rel="stylesheet" />
+
+<MudNavMenu Class="nav d-flex flex-nowrap nav-container">
     <div style="margin:auto;">
         <MudButton Class="nav-button"
                    StartIcon="@Icons.Material.Filled.Home"
@@ -19,42 +21,11 @@
                 Match="NavLinkMatch.Prefix"
                 Icon="@Icons.Material.Filled.Add"
                 Style="padding: 0; margin-right: 8px; width: 140%">
-        My Work
+        Work
     </MudNavLink>
 </MudNavMenu>
-<style>
-    .nav {
-        /*transform: translate(-3.5vw, 0px);*/
-        border-radius: 1.1rem;
-        border: 1px solid #3f3f3f;
-        margin-bottom: 0.4%;
-        z-index:-1;
-    }
-
-    .nav-button {
-        border: solid 1px #3f3f3f;
-        border-radius: 0.6rem;
-        padding: 4px 9px 4px 20px !important;
-        margin: 0px 5px 0px 5px !important;
-        min-width: auto !important;
-        max-width: 30px !important;
-        width: auto !important;
-        height: auto !important;
-    }
-
-    .nav-seperator {
-        border-left: 1px solid #3f3f3f;
-        height: 20px;
-        margin-top: 3.2%;
-    }
-    
-    .nav-item {
-        background-color: transparent;
-    }
-</style>
 
 @code {
-
     private string AboutMeIcon =>
         $"<svg width=\"85%\" height=\"85%\" viewBox=\"0 0 256 256\" " +
         "style=\"display: block; margin: auto;\" xmlns=\"http://www.w3.org/2000/svg\">" +

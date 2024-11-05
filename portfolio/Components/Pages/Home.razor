@@ -1,18 +1,19 @@
 ﻿@page "/"
+<link href="css/Home.css" rel="stylesheet">
 
 <PageTitle>Home</PageTitle>
 
-<div style="margin-left: 2vw;">
-    <div style="display: flex; flex-direction: column; margin-top: 25vh; margin-left: 30vw;">
-        <MudText Typo="Typo.h2" Class="ml-1" Color="Color.Primary">
+<div class="page-container">
+    <div class="intro-text-container">
+        <MudText Typo="Typo.h2" Class="intro-heading">
             <b>Software engineer by day,<br/>creative by night.</b>
         </MudText>
-        <MudText Typo="Typo.h5" Class="ml-1" Color="Color.Primary">
+        <MudText Typo="Typo.h5" Class="intro-subheading">
             Building skills with every line of code.
         </MudText>
     </div>
 
-    <div style="display: flex; margin-top: 0vh; margin-left:30vw">
+    <div class="chip-container">
         <MudChip T="string" Size="Size.Large" Href="about">
             <AvatarContent>
                 <MudAvatar>

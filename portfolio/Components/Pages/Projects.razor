@@ -6,16 +6,18 @@
 
 <PageTitle>My Work</PageTitle>
 
-<div style="display: flex; justify-content: center; margin-top: 1vh; width: 100%;">
-    <div style="max-width: 50vw; display: flex; flex-direction: column;">
+<link href="css/MyWork.css" rel="stylesheet" />
 
+<div class="main-container">
+    <div class="content-container">
+        
         <!-- Main Content Column -->
-        <div style="display: flex; flex-direction: column;">
-            <MudText Typo="Typo.h2" Style="align-self: center;">
+        <div>
+            <MudText Typo="Typo.h2" class="title-text">
                 <b>My Work</b>
             </MudText>
 
-            <div style="margin-top: 1.5vh;">
+            <div class="main-content">
                 @if (_data?.Projects != null && _data.Projects.Any())
                 {
                     var sortedProjects = _data.Projects
@@ -31,28 +33,27 @@
 
                     @foreach (var project in sortedProjects)
                     {
-                        <MudCard Style="margin-top: 1vh; padding: 1.5vh;">
+                        <MudCard class="project-card">
                             <MudGrid>
                                 <MudItem xs="8">
-                                    <MudCardHeader Style="padding-bottom: 0;">
-                                        <MudText Typo="Typo.h5" Style="font-weight: bold;">@project.Title</MudText>
-                                        <MudText Typo="Typo.body1" Style="margin-left: auto;">
+                                    <MudCardHeader>
+                                        <MudText Typo="Typo.h5" class="project-header-text">@project.Title</MudText>
+                                        <MudText Typo="Typo.body1" class="project-date">
                                             @($"{project.Date?.StartDate} - {project.Date?.EndDate ?? "Current"}")
                                         </MudText>
                                     </MudCardHeader>
-                                    <MudCardHeader Style="padding-top: 0; padding-bottom: 0;">
-                                        <!-- Use padding to create space -->
+                                    <MudCardHeader class="project-role">
                                         <MudText Typo="Typo.h6">As @project.MyRole</MudText>
                                     </MudCardHeader>
-                                    <MudCardContent Style="padding-top: 0;">
+                                    <MudCardContent class="project-content-text">
                                         <MudText Typo="Typo.body1">
                                             @project.Body?.Text
                                             @if (project.Body?.List is not null)
                                             {
-                                                <br/>
-                                                <br/>
-                                                <MudText Typo="Typo.body1" Style="margin-left: auto;">The Project includes:</MudText>
-                                                <ul style="list-style: disc; margin-left: 1vw;">
+                                                <br />
+                                                <br />
+                                                <MudText Typo="Typo.body1" class="project-date">The Project includes:</MudText>
+                                                <ul class="project-features-list">
                                                     @foreach (var item in project.Body.List)
                                                     {
                                                         <li>@item.Value</li>
@@ -63,8 +64,8 @@
                                     </MudCardContent>
                                 </MudItem>
 
-                                <MudItem xs="4" Style="display: flex; justify-content: center; align-items: center;">
-                                    <MudImage Src="@project.Image" Alt="Project Picture" Style="margin-right: 1vw; height: fit-content; width: 104%;"/>
+                                <MudItem xs="4" class="project-image-container">
+                                    <MudImage Src="@project.Image" Alt="Project Picture" class="project-image" />
                                 </MudItem>
                             </MudGrid>
                         </MudCard>
@@ -106,7 +107,6 @@
             return DateTime.MinValue;
         }
     }
-
 }
 
 @* <div style="display: flex; justify-content: center; margin-top: 1vh; width: 100%;"> *@
