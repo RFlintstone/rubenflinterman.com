@@ -1,4 +1,49 @@
-﻿/* Main container styling */
+﻿/* Media Queries for Small Devices */
+@media (max-width: 600px) {
+    .about-container {
+        flex-direction: column; /* Stack elements vertically */
+        align-items: center; /* Center the content */
+        margin-top: 2vh; /* Optional: adjust margin for better spacing */
+    }
+
+    .about-avatar-section {
+        flex-direction: column; /* Stack avatar and location vertically */
+        align-items: center; /* Center items in the column */
+        margin-bottom: 1vh; /* Adjust spacing */
+    }
+
+    .about-avatar-column {
+        margin: 0; /* Reset margin for better spacing on small screens */
+        margin-left: 7vw;
+    }
+
+    .about-content {
+        max-width: 90vw; /* Adjust max-width for smaller screens */
+    }
+
+    .about-main-column {
+        align-items: flex-start;
+        text-align: left;
+        margin-left: -10vw;
+        margin-top: -40vh;
+    }
+
+    .about-text {
+        margin-top: 1vh; /* Optional: adjust margin for better spacing */
+    }
+
+    .projects-section {
+        width: 100%; /* Ensure projects section uses full width */
+    }
+    
+    table {
+        width: 100%; /* Ensure the table takes the full width on small screens */
+        border-collapse: collapse; /* Maintain table styling */
+    }
+}
+
+
+/* Main container styling */
 .about-container {
     display: flex;
     justify-content: center;
@@ -81,6 +126,11 @@
 }
 
 /* Notable projects section */
+.project-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
 .projects-section {
     margin-top: 1.5vh;
 }

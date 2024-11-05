@@ -1,18 +1,20 @@
 ﻿@inherits LayoutComponentBase
 
+<link href="css/MainLayout.css" rel="stylesheet" />
+
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 <MudLayout>
-    <MudAppBar Elevation="0" Style="display:flex">
-        <MudText Typo="Typo.subtitle2" Class="ml-1" Color="Color.Primary">Europe/Rotterdam</MudText>
+    <MudAppBar Elevation="0" Class="app-bar">
+        <MudText Typo="Typo.subtitle2" Class="ml-1 location-text" Color="Color.Primary">Europe/Rotterdam</MudText>
         <MudSpacer/>
-        <div style="position:absolute; left:50%; transform:translateX(-50%);">
+        <div class="centered-nav">
             <NavMenu/>
-        </div>        
+        </div>
         <MudSpacer/>
-        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
+        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Class="DarkmodeToggle" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
         @* <MudMenu *@
         @*     FullWidth="false" *@
         @*     ActivationEvent="@MouseEvent.MouseOver" *@

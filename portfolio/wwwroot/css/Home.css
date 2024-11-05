@@ -1,26 +1,91 @@
-﻿/* Styles for Home.razor */
-
-.page-container {
-    margin-left: 2vw;
+﻿@media only screen and (max-width: 1440px) {
+    .page-container {
+        margin-top: 25.5vh;
+        margin-left: -5vw !important;
+    }
 }
 
-.intro-text-container {
-    display: flex;
-    flex-direction: column;
-    margin-top: 25vh;
-    margin-left: 30vw;
+@media only screen and (max-width: 1024px) {
+    .page-container {
+        margin-top: 25.5vh;
+        margin-left: 15vw !important;
+    }
+
+    .chip-container {
+        margin-left: -0.5vw !important;
+    }
 }
 
-.intro-heading {
-    margin-left: 1vw; /* Adjusted to match Class="ml-1" */
+@media only screen and (max-width: 768px) {
+    .page-container {
+        margin-top: 25.5vh;
+        margin-left: 2.5vw;
+        transform: scale(0.9);
+    }
+
+    .chip-container {
+        margin-left: -0.5vw !important;
+    }
 }
 
-.intro-subheading {
-    margin-left: 1vw; /* Adjusted to match Class="ml-1" */
+@media only screen and (max-width: 425px) {
+    .page-container {
+        margin-top: 12.5vh;
+        margin-right: 11.5vw;
+        transform: scale(0.9);
+    }
+
+    .chip-container {
+        margin-left: -2vw !important;
+    }
 }
 
-.chip-container {
-    display: flex;
-    margin-top: 0.4vh;
-    margin-left: 30.7vw;
+@media only screen and (max-width: 375px) {
+    .page-container {
+        margin-top: 15.5vh;
+        margin-right: 0.5vw;
+        transform: scale(0.9);
+    }
+
+    .chip-container {
+        margin-left: -2vw !important;
+    }
+}
+
+@media only screen and (max-width: 320px) {
+    .page-container {
+        margin-top: 22.5vh;
+        margin-right: auto;
+    }
+    
+    .chip-container {
+        margin-left: -2vw !important;
+    }
+}
+
+@media only screen and (min-width: 1440px) {
+    .page-container {
+        margin-left: 2vw;
+    }
+
+    .intro-text-container {
+        display: flex;
+        flex-direction: column;
+        margin-top: 25vh;
+        margin-left: 30vw;
+    }
+
+    .intro-heading {
+        margin-left: 1vw; /* Adjusted to match Class="ml-1" */
+    }
+
+    .intro-subheading {
+        margin-left: 1vw; /* Adjusted to match Class="ml-1" */
+    }
+
+    .chip-container {
+        display: flex;
+        margin-top: 0.4vh;
+        margin-left: 30.7vw;
+    }
 }
