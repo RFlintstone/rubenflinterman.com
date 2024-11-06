@@ -12,7 +12,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 // Register the ProjectService
-builder.Services.AddScoped<IProjectService>(sp => new ProjectService(Path.Combine(sp.GetRequiredService<IHostEnvironment>().ContentRootPath, "Properties", "MyWork.json")));
+builder.Services.AddScoped<IProjectService>(sp => new ProjectService(Path.Combine(sp.GetRequiredService<IHostEnvironment>().ContentRootPath, "wwwroot", "MyWork.json")));
 
 var app = builder.Build();
 
