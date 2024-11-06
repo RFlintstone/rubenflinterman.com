@@ -36,11 +36,11 @@ EXPOSE 8081
 # Copy the appropriate build output
 FROM runtime AS final-amd64
 COPY --from=build-amd64 /app/out ./
-ENTRYPOINT ["dotnet", "Api.dll"]
+ENTRYPOINT ["dotnet", "portfolio.dll"]
 
 FROM runtime AS final-arm64
 COPY --from=build-arm64 /app/out ./
-ENTRYPOINT ["dotnet", "Api.dll"]
+ENTRYPOINT ["dotnet", "portfolio.dll"]
 
 # Use a multi-stage build to select the appropriate final image
 FROM final-${TARGETARCH}
