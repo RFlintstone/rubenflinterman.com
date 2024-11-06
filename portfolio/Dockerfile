@@ -28,6 +28,7 @@ WORKDIR /app
 
 # Create directory for data protection keys
 RUN mkdir /app/keys && chown -R 1000:1000 /app/keys
+COPY ./wwwroot/MyWork.json /app/wwwroot/MyWork.json
 
 # Expose both ports
 EXPOSE 8080

@@ -89,11 +89,11 @@
     }
 
     // Update result text
-    function updateResults() {
-        let result = document.getElementById('result');
-        // Clear previous result and update with new status
-        result.innerText = 'MouseCircle hits window border: ' + checkWindowCollision(mouseCircle);
-    }
+    // function updateResults() {
+    //     let result = document.getElementById('result');
+    //     // Clear previous result and update with new status
+    //     result.innerText = 'MouseCircle hits window border: ' + checkWindowCollision(mouseCircle);
+    // }
 
     // Create and update Circle B based on mouse position
     let lastX = mouseCircle.x; // Last valid X position
@@ -140,12 +140,12 @@
         // Update circle position
         mouseCircle.updatePosition();
 
-        updateResults(); // Update results
+        // updateResults(); // Update results
     });
 
     // Initial draw of circles and results
     circles.forEach(circle => circle.updatePosition()); // Position all circles initially
-    updateResults(); // Update results
+    // updateResults(); // Update results
 
     // Optionally create a div for results if it doesn't exist
     if (!document.getElementById('result')) {
