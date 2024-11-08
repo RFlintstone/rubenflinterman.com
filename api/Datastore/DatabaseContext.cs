@@ -25,7 +25,7 @@ public class DatabaseContext : DbContext
     {
         modelBuilder.Entity<UserInfoModel>().HasKey(x => x.Id);
 
-        // Generate a random key and IV
+        // Generate a random key and IV in case of seeding
         var key = Convert.FromBase64String(_encryptionKey);
         var iv = Convert.FromBase64String(_encryptionIv);
         using (var rng = new RNGCryptoServiceProvider())
@@ -33,32 +33,5 @@ public class DatabaseContext : DbContext
             rng.GetBytes(key);
             rng.GetBytes(iv);
         }
-
-        // Seed
-        modelBuilder.Entity<UserInfoModel>().HasData(new UserInfoModel
-        {
-            Id = Guid.NewGuid(),
-            Username = "Ruben",
-            Email = "r.w.flinterman@hotmail.com",
-            Password = Convert.ToBase64String(_encryptionService.Encrypt("admin")),
-            PhoneNumber = "",
-            LastLogin = DateTime.UtcNow,
-            Token = "deqdCsDhKsfYxBLgHLsdHJWhsdpvEUULb6Ry99HEHproXQMdbqP3kXepYRwyGG2Ie64x38CAbsuzjdxUdGAkD3klDbQrMeB5a7J0",
-            TokenCreated = DateTime.UtcNow,
-            TokenExpiry = DateTime.UtcNow.AddDays(30)
-        });
-
-        modelBuilder.Entity<UserInfoModel>().HasData(new UserInfoModel
-        {
-            Id = Guid.NewGuid(),
-            Username = "User",
-            Email = "user@user.com",
-            Password = Convert.ToBase64String(_encryptionService.Encrypt("user")),
-            PhoneNumber = "",
-            LastLogin = DateTime.UtcNow,
-            Token = "user_token",
-            TokenCreated = DateTime.UtcNow,
-            TokenExpiry = DateTime.UtcNow.AddDays(30)
-        });
     }
 }
