@@ -4,11 +4,11 @@ WORKDIR /app
 
 # Copy and restore as distinct layers
 COPY *.csproj ./
-RUN dotnet restore -r linux-$TARGETARCH
+RUN dotnet restore -r $TARGETOS-$TARGETARCH
 
 # Copy everything else and build
 COPY . ./
-RUN dotnet publish -c Release -o out --self-contained false --no-restore -r linux-$TARGETARCH
+RUN dotnet publish -c Release -o out --self-contained false --no-restore -r $TARGETOS-$TARGETARCH
 
 # Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy AS runtime
