@@ -22,7 +22,7 @@ WORKDIR /app
 RUN . /etc/environment && mvn clean package -DskipTests
 
 # Final stage
-FROM openjdk:21-slim
+FROM openjdk:24-ea-22-oraclelinux8
 
 # Copy the built artifact from the build stage
 COPY --from=build /app/target/api-0.0.1-SNAPSHOT.jar /app.jar
