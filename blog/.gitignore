@@ -1,3 +1,7 @@
+### Snyk ###
+# DeepCode
+.dccache
+
 # project
 _site
 .sass-cache
