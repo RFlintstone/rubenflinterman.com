@@ -1,4 +1,6 @@
-﻿# Start with the SDK image for AMD64
+﻿ARG TARGETARCH=arm64
+
+# Start with the SDK image for AMD64
 FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:8.0 AS build-amd64
 WORKDIR /app
 
