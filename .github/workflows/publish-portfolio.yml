@@ -1,0 +1,55 @@
+name: Docker
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ 'v*.*.*' ]
+    paths:
+      - 'portfolio/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'portfolio/**'
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-portfolio:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Common steps
+        id: common-steps
+        uses: ./.github/actions/common-steps
+        with:
+          context: ./portfolio
+          image_name: ${{ env.IMAGE_NAME }}-portfolio
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v5.0.0
+        with:
+          context: ./portfolio
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.common-steps.outputs.tags }}
+          platforms: linux/arm64,linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Sign the published Docker image
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          TAGS: ${{ steps.common-steps.outputs.tags }}
+          DIGEST: ${{ steps.build-and-push.outputs.digest }}
+        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
