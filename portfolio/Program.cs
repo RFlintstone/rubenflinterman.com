@@ -12,7 +12,15 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 // Register the ProjectService
-builder.Services.AddScoped<IProjectService>(sp => new ProjectService(Path.Combine(sp.GetRequiredService<IHostEnvironment>().ContentRootPath, "wwwroot", "MyWork.json")));
+builder.Services.AddScoped<IProjectService>(sp => 
+{
+    var contentRoot = sp.GetRequiredService<IHostEnvironment>().ContentRootPath;
+    var filePath = Path.GetFullPath(Path.Combine(contentRoot, "wwwroot", "MyWork.json"));
+
+    // Ensure that the resolved path is within the ContentRoot to avoid path traversal
+    if (!filePath.StartsWith(contentRoot)) throw new UnauthorizedAccessException("Invalid path detected.");
+    return new ProjectService(filePath);
+});
 
 var app = builder.Build();
 
