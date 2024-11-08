@@ -2,6 +2,7 @@ using MudBlazor.Services;
 using portfolio.Components;
 using portfolio.Services;
 
+// Create builder instance
 var builder = WebApplication.CreateBuilder(args);
 
 // Add MudBlazor services
@@ -22,6 +23,7 @@ builder.Services.AddScoped<IProjectService>(sp =>
     return new ProjectService(filePath);
 });
 
+// Build app
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -32,12 +34,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Middleware
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 app.UseAntiforgery();
 
+// Map components which we like to render
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+// Start the app
 app.Run();
