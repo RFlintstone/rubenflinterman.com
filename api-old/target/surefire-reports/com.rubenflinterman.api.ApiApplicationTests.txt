@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.rubenflinterman.api.ApiApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.417 s -- in com.rubenflinterman.api.ApiApplicationTests

@@ -1,0 +1,8 @@
+META-INF/spring-configuration-metadata.json
+com/rubenflinterman/api/config/security/SecurityConfig.class
+com/rubenflinterman/api/service/security/TokenService.class
+com/rubenflinterman/api/config/security/RsaKeyProperties.class
+com/rubenflinterman/api/ApiApplication.class
+com/rubenflinterman/api/controller/HomeController.class
+com/rubenflinterman/api/controller/security/AuthController.class
+com/rubenflinterman/api/model/security/LoginRequest.class

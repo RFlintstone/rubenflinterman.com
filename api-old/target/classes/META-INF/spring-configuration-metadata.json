@@ -1,0 +1,36 @@
+{
+  "groups": [
+    {
+      "name": "rsa",
+      "type": "com.rubenflinterman.api.config.security.RsaKeyProperties",
+      "sourceType": "com.rubenflinterman.api.config.security.RsaKeyProperties"
+    },
+    {
+      "name": "spring.datasource",
+      "type": "javax.sql.DataSource",
+      "sourceType": "com.rubenflinterman.api.config.datasource.DataSourceConfig",
+      "sourceMethod": "readWriteDataSource()"
+    },
+    {
+      "name": "spring.datasource.readonly",
+      "type": "javax.sql.DataSource",
+      "sourceType": "com.rubenflinterman.api.config.datasource.ReadOnlyDataSourceConfig",
+      "sourceMethod": "readOnlyDataSource()"
+    }
+  ],
+  "properties": [
+    {
+      "name": "rsa.private-key",
+      "type": "java.security.interfaces.RSAPrivateKey",
+      "description": "The private key",
+      "sourceType": "com.rubenflinterman.api.config.security.RsaKeyProperties"
+    },
+    {
+      "name": "rsa.public-key",
+      "type": "java.security.interfaces.RSAPublicKey",
+      "description": "The public key",
+      "sourceType": "com.rubenflinterman.api.config.security.RsaKeyProperties"
+    }
+  ],
+  "hints": []
+}
