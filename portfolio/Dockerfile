@@ -1,5 +1,5 @@
 ﻿# Start with the SDK image for AMD64
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:8.0 AS build-amd64
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-amd64
 WORKDIR /app
 
 # Copy and restore as distinct layers
@@ -11,7 +11,7 @@ COPY . ./
 RUN dotnet publish -c Release -o out -r linux-x64 --self-contained false --no-restore
 
 # Build ARM64 version
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:8.0 AS build-arm64
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-arm64
 WORKDIR /app
 
 # Copy and restore as distinct layers
