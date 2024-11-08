@@ -22,7 +22,7 @@ public class AuthTokenService
         try
         {
             // Log token request
-            _logger.LogInformation($"Generating access token for user {userName} at {DateTime.Now}");
+            _logger.LogInformation($"Generating access token at {DateTime.Now}");
 
             // Create user claims
             var claims = new List<Claim>
@@ -56,7 +56,7 @@ public class AuthTokenService
                 )
             );
             
-            _logger.LogInformation($"Access token generated for user {userName} at {DateTime.Now}");
+            _logger.LogInformation($"Access token generated at {DateTime.Now}");
 
             // Return token
             return token;

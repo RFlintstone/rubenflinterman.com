@@ -24,9 +24,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [ValidateAntiForgeryToken]
     public IActionResult PostLogin([FromBody] AuthLoginModel model)
     {
-
         // Fetch data synchronously
         var user = _dbContext.Users.ToList().FirstOrDefault(u =>
             u.Email == model.Username &&
@@ -35,7 +35,7 @@ public class AuthController : ControllerBase
             u.TokenCreated < DateTime.UtcNow &&
             u.TokenExpiry > DateTime.UtcNow
         );
-        
+
         // If we couldn't find a user, the user is incorrect
         if (user is null)
         {
@@ -44,7 +44,7 @@ public class AuthController : ControllerBase
         }
 
         // Log that the user has successfully authorised their request using a token.
-        _logger.LogInformation($"User {user.Email} logged in");
+        _logger.LogInformation("User logged in");
 
         // generate token for user using the composed AuthToken instance
         var token = _authTokenService.GenerateAccessToken(model.Username, user.Id);
