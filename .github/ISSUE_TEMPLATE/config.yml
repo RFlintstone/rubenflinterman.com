@@ -1,0 +1,4 @@
+contact_links:
+  - name: "✉️ Email for Critical Vulnerabilities"
+      url: mailto:rubenflint@hotmail.com
+      about: For sensitive or urgent security vulnerabilities, please email directly to ensure confidentiality and prompt action.
