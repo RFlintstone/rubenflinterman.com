@@ -1,5 +1,10 @@
+# API (v1) - api.rubenflinterman.com
+
 www.api.rubenflinterman.com serves as the brains behind my website.
 It includes a token system which makes sure only authorized clients (applications or users) can make a request.
+
+-----------------
+
 # How it works
 The API is relatively simple to understand if you make it a list. It works as follows.
 - The client has an access token which has a *long lifespan*.
