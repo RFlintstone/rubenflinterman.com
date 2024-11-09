@@ -4,13 +4,13 @@ This repository contains the development of my personal website and API, hosted 
 ## Portfolio (v1) - rubenflinterman.com [![Publish Portfolio](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/publish-portfolio.yml/badge.svg)](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/publish-portfolio.yml)
 A portfolio section to showcase my work and projects. This is currently in progress and will feature various lists and descriptions of my projects.
 
-## API (v1) - api.rubenflinterman.com [![Publish Api](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/publish-api.yml/badge.svg?event=registry_package)](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/publish-api.yml)
+## API (v1) - api.rubenflinterman.com [![Publish Api](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/publish-api.yml/badge.svg)](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/publish-api.yml)
 A C# API project designed to support the functionality of the website:
 - Project Structure: Organized structure including Controllers, Models, Services, and Datastore.
 - Docker Setup: Using Docker for easy deployment, with a focus on database and Adminer integration.
 - JWT Support: Implementing JWT for secure access and token management.
 
-## Blog (v0) - blog.rubenflinterman.com [![Publish Blog](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/publish-blog.yml/badge.svg?event=registry_package)](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/publish-blog.yml)
+## Blog (v0) - blog.rubenflinterman.com [![Publish Blog](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/publish-blog.yml/badge.svg)](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/publish-blog.yml)
 A Jekyll-based blog which I'd like to replace with a self-created blog system in v1.
 The new version should load blog posts from a database however the included text editor should support full markdown.
 
