@@ -7,7 +7,7 @@ This section lists the versions of each project within the mono repo that are cu
 | Project   | Version | Supported          |
 | --------- | ------- | ------------------ |
 | Portfolio | 1.x.x   | :white_check_mark:  |
-| API       | 2.x.x   | :white_check_mark:  |
+| API       | 1.x.x   | :white_check_mark:  |
 | Blog      | <=1.0   | :x:                |
 | Portfolio | < 1.0   | :x:                |
 | API       | < 1.0   | :x:                |
