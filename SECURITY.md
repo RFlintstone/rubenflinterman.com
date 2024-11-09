@@ -19,7 +19,7 @@ This section lists the versions of each project within the mono repo that are cu
 If you find a vulnerability in any of the projects within this mono repo, we encourage you to report it to us responsibly. Here's how you can do so:
 
 1. **Where to Report:**
-   - Please report vulnerabilities via [email](mailto:rubenflint@hotmail.com) or [GitHub Issues](https://github.com/rflintstone/rubenflinterman.com/issues). Ensure you choose a private communication channel, particularly for critical issues.
+   - Please report vulnerabilities via [email](mailto:rubenflint@hotmail.com?subject=Security%20Vulnerability%20Report%20-%20INSERT%20TITLE%20-%20rubenflinterman.com). Ensure you choose a private communication channel, particularly for critical issues.
    
 2. **What to Include in the Report:**
    - Clear description of the issue or vulnerability.
