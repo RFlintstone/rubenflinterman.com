@@ -1,3 +1,4 @@
+blank_issues_enabled: false
 contact_links:
   - name: "✉️ Email for Critical Vulnerabilities"
       url: mailto:rubenflint@hotmail.com
