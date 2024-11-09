@@ -13,30 +13,15 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/1-Overview.md",
+                "file": "LICENSE.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "1-Overview"
-            }
-          },
-          {
-            "id": "7ac2d218898babc2",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "LICENSE.md.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "LICENSE.md"
+              "title": "LICENSE"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -108,7 +93,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "LICENSE.md.md",
+                "file": "LICENSE.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -118,7 +103,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for LICENSE.md"
+              "title": "Backlinks for LICENSE"
             }
           },
           {
@@ -127,12 +112,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "LICENSE.md.md",
+                "file": "LICENSE.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from LICENSE.md"
+              "title": "Outgoing links from LICENSE"
             }
           },
           {
@@ -154,10 +139,10 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "LICENSE.md.md"
+                "file": "LICENSE.md"
               },
               "icon": "lucide-list",
-              "title": "Outline of LICENSE.md"
+              "title": "Outline of LICENSE"
             }
           }
         ]
@@ -177,9 +162,10 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "7ac2d218898babc2",
+  "active": "48b55c73d5529688",
   "lastOpenFiles": [
     "docs/1-Overview.md",
+    "LICENSE.md",
     "LICENSE.md.md",
     "docs/2-Quickstart.md",
     "docs/3-rubenflinterman.com.md",
