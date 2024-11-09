@@ -1,8 +1,3 @@
-# Project Overview
-## Description
-A brief overview of what your project aims to achieve. This could include the primary goal, features, and any relevant context that helps explain the importance of the project.
-## Contributing
-Instructions for contributing to the project, including how to fork the repository, create branches, and submit pull requests will come soon.
 ## License
 #### 1. **Definitions**
 - **"License"** refers to this Custom Non-Commercial License 2.0 with Commercial Use Exception.
@@ -44,6 +39,3 @@ If you violate any of the terms of this License, your rights under this License 
 - The Code is licensed under the [Apache License 2.0](https://choosealicense.com/licenses/apache-2.0/) except for the **Commercial Use Restriction**, **Patent Use Restriction**, and **Private Use Restriction**, as outlined in Sections 3, 4, and 5 of this License.
 - You may not apply any additional restrictions on the recipients' exercise of the rights granted under this License.
 - The original owner, **Ruben Flinterman**, reserves the right to update, modify, or change this License at any point in time, with or without notice.
----
-
-_For more details, please refer to the relevant documentation listed in the sidebar._

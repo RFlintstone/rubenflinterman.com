@@ -1,83 +1,36 @@
-# Quickstart Guide for C# Application
+# Quickstart Guide
 
-This quickstart guide walks you through setting up a simple C# application. It includes installation, creating a new project, and writing a basic "Hello, World!" application.
+This quickstart guide includes installation, creating a new project, and writing a basic "Hello, World!" application.
 
 ---
-
-## Prerequisites
+# Global Prerequisites
 
 1. **Install .NET SDK**  
-   Download and install the latest [.NET SDK](https://dotnet.microsoft.com/download) to compile and run your C# applications.
+	If you want to run any of the listed C# applications outside of the container, it is recommended to download and install the latest [.NET SDK](https://dotnet.microsoft.com/download) to compile and run your C# applications.
 
-2. **Verify Installation**  
-   Open a terminal or command prompt and run:
-   ```bash
-   dotnet --version
-   ```
-   You should see the installed version of the .NET SDK.
+3. **Install Docker Compose**	
+	Download and install the latest version of [Docker Compose](https://docs.docker.com/compose/install/). This can be done through Docker Desktop, or a standalone version. 
 
----
-
-## Create a New Project
-
-1. **Initialize a Console Application**  
-   In the terminal, navigate to your desired project directory and run:
-   ```bash
-   dotnet new console -o HelloWorldApp
-   ```
-   This command creates a new console application in a folder named `HelloWorldApp`.
-
-2. **Navigate to Project Folder**
-   ```bash
-   cd HelloWorldApp
-   ```
+5. **Verify Installation**  
+	Open a terminal or command prompt and run:
+```bash
+dotnet --version       # .NET SDK
+docker compose version # Docker Compose
+```
+   You should see the installed version of both .NET SDK and Docker Compose.
+   
+> **Note:** In order to get Docker commands to work within Windows Subsystem for Linux (WSL) you'll need to enable 'WSL integration' in Docker's resource settings. 
 
 ---
-
-## Write Your First Program
-
-1. **Open the Program File**  
-   Open `Program.cs` in your favorite text editor or IDE (e.g., Visual Studio Code, Visual Studio).
-
-2. **Replace the Code**  
-   Replace the default code with the following to output "Hello, World!" to the console:
-   ```csharp
-   using System;
-
-   namespace HelloWorldApp
-   {
-       class Program
-       {
-           static void Main(string[] args)
-           {
-               Console.WriteLine("Hello, World!");
-           }
-       }
-   }
-   ```
-
----
-
-## Run the Application
+# Run the Application
 
 1. **Build and Run**  
    In the terminal, make sure you’re in the project directory and enter:
    ```bash
-   dotnet run
+   dotnet run               # Outside of container
+   docker compose up --build # With container
    ```
-   You should see the output:
-   ```
-   Hello, World!
-   ```
-
----
-
-## Next Steps
-
-- Explore more C# syntax and features.
-- Add additional methods and classes to practice C# concepts.
-- Experiment with libraries and frameworks in the .NET ecosystem.
 
 --- 
 
-This guide provides a basic setup. Check out the [official .NET documentation](https://docs.microsoft.com/dotnet) for more tutorials and resources.
+_This guide provides a basic setup. Check out the official documentation of the listed resources for a more detailed guide._

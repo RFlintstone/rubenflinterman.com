@@ -1,0 +1,194 @@
+{
+  "main": {
+    "id": "10c111dca121d0c4",
+    "type": "split",
+    "children": [
+      {
+        "id": "3d6cc32e58c4fa48",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "48b55c73d5529688",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "docs/1-Overview.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "1-Overview"
+            }
+          },
+          {
+            "id": "7ac2d218898babc2",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "LICENSE.md.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "LICENSE.md"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "932911f92501b6d1",
+    "type": "split",
+    "children": [
+      {
+        "id": "960c5cc29c820c23",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1b5a8eab4ac69f31",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "e05ac3c6f123d5cb",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "b92f61cd2902c31b",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "0cf9a59fc8fb4c5e",
+    "type": "split",
+    "children": [
+      {
+        "id": "98c6ffd2d7845f72",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "cea45beac4b28d41",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "LICENSE.md.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for LICENSE.md"
+            }
+          },
+          {
+            "id": "3a1e922739dfe60a",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "LICENSE.md.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from LICENSE.md"
+            }
+          },
+          {
+            "id": "b8faeeca1136fe40",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "781a3baed40a2c00",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "LICENSE.md.md"
+              },
+              "icon": "lucide-list",
+              "title": "Outline of LICENSE.md"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "7ac2d218898babc2",
+  "lastOpenFiles": [
+    "docs/1-Overview.md",
+    "LICENSE.md.md",
+    "docs/2-Quickstart.md",
+    "docs/3-rubenflinterman.com.md",
+    "docs/4-api.rubenflinterman.com.md",
+    "docs/README.md",
+    "docs/_sidebar.md",
+    "docs/darkly.css",
+    "_sidebar.md",
+    "4-api.rubenflinterman.com.md",
+    "docs/CNAME"
+  ]
+}

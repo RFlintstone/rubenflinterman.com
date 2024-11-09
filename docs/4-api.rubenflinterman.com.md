@@ -12,11 +12,13 @@ The API is relatively simple to understand if you make it a list. It works as fo
 - If the request is OK the client gets a bearer token which has a *short lifespan* which is meant for immediate use.
 - The client uses the bearer token do the actual API request (ex. ``/private-endpoint``)
 - If the bearer token is not expired the API returns a successful response with the appropriate data (Ex: "Hello World").
+
+# Project Prerequisites
+- Make sure you have a postgress database up and running.
+- For production: install and configure [hoop.dev](https://hoop.dev/docs/getting-started/cli) acording to the documentation.
+	- Make sure the ``hoop.dev`` environment is setup, and you can connect to the database. (If you are using Windows the Desktop app is recommended.)
+
 # Adding new DB migrations
 If you need to add a new migration follow these instructions:
-**Prerequisites**
-- Make sure the ``hoop.dev`` environment is setup, and you can connect to the server. (For windows the Desktop app is recommended)
-- Connect to the ``read-write`` connection to the correct database. This starts a secure tunnel. If you do this with the Windows Desktop App the connection is valid for around 30 minutes.
-**Create and upload the migration**
 - Create a migration using ``dotnet ef migrations add MigrationName``
 - Upload the newly created migration using ``dotnet ef database update``
