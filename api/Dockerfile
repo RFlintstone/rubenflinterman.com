@@ -8,10 +8,10 @@ RUN dotnet restore
 
 # Copy everything else and build the application
 COPY . ./
-RUN dotnet build -c Release --no-restore
+RUN dotnet build -c Release
 
 # Publish the application
-RUN dotnet publish -c Release -o /app/out --self-contained false --no-restore
+RUN dotnet publish -c Release -o /app/out --self-contained false
 
 # Runtime image (this is the common base image)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy AS runtime
