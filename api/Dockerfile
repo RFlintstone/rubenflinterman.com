@@ -6,8 +6,11 @@ WORKDIR /app
 COPY *.csproj ./
 RUN dotnet restore
 
-# Copy everything else and build
+# Copy everything else and build the application
 COPY . ./
+RUN dotnet build -c Release --no-restore
+
+# Publish the application
 RUN dotnet publish -c Release -o /app/out --self-contained false --no-restore
 
 # Runtime image (this is the common base image)
@@ -18,7 +21,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     openssl \
     libssl-dev \
-    ca-certificates
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create directory for data protection keys
 RUN mkdir /app/keys && chown -R 1000:1000 /app/keys
