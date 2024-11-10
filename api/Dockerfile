@@ -1,5 +1,8 @@
-# Use the .NET SDK image for building the application (no platform-specific builds in Dockerfile)
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# Use ARG to define the target architecture
+ARG TARGETARCH
+
+# Start with the SDK image for the specified architecture
+FROM --platform=linux/${TARGETARCH} mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
 # Copy and restore dependencies
@@ -9,12 +12,10 @@ RUN dotnet restore
 # Copy everything else and build the application
 COPY . ./
 RUN dotnet build -c Release
-
-# Publish the application
 RUN dotnet publish -c Release -o /app/out --self-contained false
 
-# Runtime image (this is the common base image)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy AS runtime
+# Runtime image
+FROM --platform=linux/${TARGETARCH} mcr.microsoft.com/dotnet/aspnet:8.0-jammy AS runtime
 WORKDIR /app
 
 # Install OpenSSL and other required cryptographic libraries
