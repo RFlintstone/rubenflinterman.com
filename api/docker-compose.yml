@@ -18,7 +18,7 @@
       - ADMINER_DEFAULT_SERVER=db
   
   api:
-    image: api
+    image: api:latest
     build:
       context: .
       dockerfile: Dockerfile

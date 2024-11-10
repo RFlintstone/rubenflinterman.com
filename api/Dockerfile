@@ -1,48 +1,38 @@
-ARG TARGETARCH=arm64
- 
-# Start with the SDK image for AMD64
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:8.0 AS build-amd64
+# Use the .NET SDK image for building the application (no platform-specific builds in Dockerfile)
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
-# Copy and restore as distinct layers
+# Copy and restore dependencies
 COPY *.csproj ./
-RUN dotnet restore -r linux-x64
+RUN dotnet restore
 
 # Copy everything else and build
 COPY . ./
-RUN dotnet publish -c Release -o out -r linux-x64 --self-contained false --no-restore
+RUN dotnet publish -c Release -o /app/out --self-contained false --no-restore
 
-# Build ARM64 version
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:8.0 AS build-arm64
-WORKDIR /app
-
-# Copy and restore as distinct layers
-COPY *.csproj ./
-RUN dotnet restore -r linux-arm64
-
-# Copy everything else and build
-COPY . ./
-RUN dotnet publish -c Release -o out -r linux-arm64 --self-contained false --no-restore
-
-# Runtime image
+# Runtime image (this is the common base image)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy AS runtime
 WORKDIR /app
+
+# Install OpenSSL and other required cryptographic libraries
+RUN apt-get update && apt-get install -y \
+    openssl \
+    libssl-dev \
+    ca-certificates
 
 # Create directory for data protection keys
 RUN mkdir /app/keys && chown -R 1000:1000 /app/keys
 
-# Expose both ports
+# Copy the certificate into the container and set proper permissions
+COPY ./certificate.pfx /app/keys/
+RUN chmod 644 /app/keys/certificate.pfx
+
+# Expose ports
 EXPOSE 8080
 EXPOSE 8081
 
-# Copy the appropriate build output
-FROM runtime AS final-amd64
-COPY --from=build-amd64 /app/out ./
-ENTRYPOINT ["dotnet", "Api.dll"]
+# Copy the published output from the build stage
+COPY --from=build /app/out ./
 
-FROM runtime AS final-arm64
-COPY --from=build-arm64 /app/out ./
+# Set the entry point for the app
 ENTRYPOINT ["dotnet", "Api.dll"]
-
-# Use a multi-stage build to select the appropriate final image
-FROM final-${TARGETARCH}
