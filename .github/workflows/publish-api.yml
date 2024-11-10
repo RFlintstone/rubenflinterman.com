@@ -43,7 +43,9 @@ jobs:
           echo "Tags: ${{ steps.common-steps.outputs.tags }}"
 
       - name: Decode certificate from Base64
-        run: echo "${{ secrets.CERTIFICATE_PFX_BASE64 }}" | base64 --decode > certificate.pfx
+        run: |
+          cd ./api
+          echo "${{ secrets.CERTIFICATE_PFX_BASE64 }}" | base64 --decode > certificate.pfx
         
       - name: Build and push Docker image
         id: build-and-push
