@@ -24,7 +24,7 @@ public class Program
             var certificate = new X509Certificate2(certificatePath, certificateKey);
             
             builder.Services.AddDataProtection()
-                .PersistKeysToFileSystem(new DirectoryInfo("/keys/"))
+                .PersistKeysToFileSystem(new DirectoryInfo("/app/keys/"))
                 .ProtectKeysWithCertificate(certificate);
                 
             var logger = LoggerFactory.Create(config => config.AddConsole())
