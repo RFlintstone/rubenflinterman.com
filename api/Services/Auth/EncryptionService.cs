@@ -10,8 +10,8 @@ public class EncryptionService
 
     public EncryptionService(IConfiguration configuration)
     {
-        encryptionKey = Convert.FromBase64String(configuration["Encryption:Key"]);
-        iv = Convert.FromBase64String(configuration["Encryption:IV"]);
+        encryptionKey = Convert.FromBase64String(configuration["Encryption:Key"]) ?? "";
+        iv = Convert.FromBase64String(configuration["Encryption:IV"]) ?? "";
     }
 
     public byte[] Encrypt(string plaintext)

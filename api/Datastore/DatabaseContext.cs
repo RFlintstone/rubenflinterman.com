@@ -26,12 +26,12 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<UserInfoModel>().HasKey(x => x.Id);
 
         // Generate a random key and IV in case of seeding
-        var key = Convert.FromBase64String(_encryptionKey);
-        var iv = Convert.FromBase64String(_encryptionIv);
-        using (var rng = new RNGCryptoServiceProvider())
-        {
-            rng.GetBytes(key);
-            rng.GetBytes(iv);
-        }
+        // var key = Convert.FromBase64String(_encryptionKey);
+        // var iv = Convert.FromBase64String(_encryptionIv);
+        // using (var rng = new RNGCryptoServiceProvider())
+        // {
+        //     rng.GetBytes(key);
+        //     rng.GetBytes(iv);
+        // }
     }
 }
