@@ -11,7 +11,7 @@ RUN dotnet restore
 
 # Copy everything else and build the application
 COPY . ./
-RUN dotnet build -c Release
+RUN dotnet build -c Release --no-restore
 RUN dotnet publish -c Release -o /app/out --self-contained false
 
 # Runtime image
