@@ -10,7 +10,6 @@ COPY *.csproj ./
 
 # Copy everything else and build the application
 COPY . ./
-RUN dotnet build -c Release
 RUN dotnet publish -c Release -o /app/out --self-contained false
 
 # Runtime image
