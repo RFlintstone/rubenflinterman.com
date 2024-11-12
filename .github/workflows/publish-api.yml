@@ -18,13 +18,24 @@ env:
 
 jobs:
   build-api:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config:
+          - platform: linux/amd64
+            runs_on: ubuntu-latest
+          - platform: linux/arm64
+            runs_on: buildjet-2vcpu-ubuntu-2204-arm
+
+    runs-on: ${{ matrix.config.runs_on }}
     permissions:
       contents: read
       packages: write
       id-token: write
 
     steps:
+      - name: Set up job
+        run: echo "Running on ${{ matrix.config.runs_on }} for Docker platform ${{ matrix.config.platform }}"
+      
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -54,7 +65,7 @@ jobs:
           context: ./api
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.common-steps.outputs.tags }}
-          platforms: linux/arm64,linux/amd64
+          platforms: ${{ matrix.config.platform }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
