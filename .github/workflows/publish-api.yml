@@ -24,7 +24,7 @@ jobs:
           - platform: linux/amd64
             runs_on: ubuntu-latest
           - platform: linux/arm64
-            runs_on: buildjet-2vcpu-ubuntu-2204-arm
+            runs-on: self-hosted
 
     runs-on: ${{ matrix.config.runs_on }}
     permissions:
