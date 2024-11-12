@@ -27,8 +27,8 @@ RUN apt-get update && apt-get install -y \
 RUN mkdir /app/keys && chown -R 1000:1000 /app/keys
 
 # Copy the certificate into the container and set proper permissions
-COPY ./certificate.pfx /app/keys/
-RUN chmod 644 /app/keys/certificate.pfx
+COPY ./certificate.pfx /app/certificate.pfx
+RUN chmod 644 /app/certificate.pfx
 
 # Expose ports
 EXPOSE 8080
