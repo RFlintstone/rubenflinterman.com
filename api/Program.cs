@@ -88,6 +88,7 @@ public class Program
         });
 
         // Add services to the container.
+        builder.Services.AddAntiforgery();
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
