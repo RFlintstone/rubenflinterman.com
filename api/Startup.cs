@@ -30,6 +30,7 @@ public class Startup
         }
 
         // Middleware
+        app.UseAntiforgery();
         app.UseHttpsRedirection();
         app.UseAuthorization();
         app.MapControllers();
