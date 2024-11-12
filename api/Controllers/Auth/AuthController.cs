@@ -24,7 +24,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    [ValidateAntiForgeryToken]
+    // [ValidateAntiForgeryToken]
     public IActionResult PostLogin([FromBody] AuthLoginModel model)
     {
         // Fetch data synchronously
