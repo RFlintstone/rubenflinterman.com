@@ -66,8 +66,8 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.common-steps.outputs.tags }}
           platforms: ${{ matrix.config.platform }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Sign the published Docker image
         if: ${{ github.event_name != 'pull_request' }}
