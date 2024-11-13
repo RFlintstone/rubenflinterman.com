@@ -1,3 +1,4 @@
+using Konscious.Security.Cryptography;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -5,43 +6,34 @@ namespace Api.Services.Auth;
 
 public class EncryptionService
 {
-    private readonly byte[] encryptionKey;
-    private readonly byte[] iv;
-
     public EncryptionService(IConfiguration configuration)
     {
-        var encryptionKeyString = configuration["Encryption:Key"];
-        var ivString = configuration["Encryption:IV"];
-
-        byte[] encryptionKey = string.IsNullOrEmpty(encryptionKeyString) ? Array.Empty<byte>() : Convert.FromBase64String(encryptionKeyString);
-        byte[] iv = string.IsNullOrEmpty(ivString) ? Array.Empty<byte>() : Convert.FromBase64String(ivString);
     }
 
-    public byte[] Encrypt(string plaintext)
+    public byte[] Encrypt(string plaintext, Guid userUuid)
     {
-        return Encrypt(plaintext, encryptionKey, iv);
-    }
-    
-    public static byte[] Encrypt(string plaintext, byte[] key, byte[] iv)
-    {
-        using (Aes aesAlg = Aes.Create())
+        // Derive a deterministic salt from the user UUID
+        byte[] salt = GenerateSaltFromUserUuid(userUuid);
+        byte[] userUuidBytes = Encoding.UTF8.GetBytes(userUuid.ToString());
+
+        // Configure Argon2 with the plaintext and derived salt
+        var argon2 = new Argon2d(Encoding.UTF8.GetBytes(plaintext))
         {
-            aesAlg.Key = key;
-            aesAlg.IV = iv;
-            ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
-            byte[] encryptedBytes;
-            using (var msEncrypt = new System.IO.MemoryStream())
-            {
-                using (var csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
-                {
-                    byte[] plainBytes = Encoding.UTF8.GetBytes(plaintext);
-                    csEncrypt.Write(plainBytes, 0, plainBytes.Length);
-                }
+            DegreeOfParallelism = 8,
+            MemorySize = 8192,
+            Iterations = 40,
+            Salt = salt,
+            AssociatedData = userUuidBytes
+        };
 
-                encryptedBytes = msEncrypt.ToArray();
-            }
+        // Generate the 128-byte hash
+        return argon2.GetBytes(128);
+    }
 
-            return encryptedBytes;
-        }
+    private byte[] GenerateSaltFromUserUuid(Guid userUuid)
+    {
+        // Hash the user UUID to create a deterministic salt
+        using var sha256 = SHA256.Create();
+        return sha256.ComputeHash(Encoding.UTF8.GetBytes(userUuid.ToString()));
     }
 }
