@@ -24,18 +24,18 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    [ValidateAntiForgeryToken]
+    // [ValidateAntiForgeryToken]
     public IActionResult PostLogin([FromBody] AuthLoginModel model)
     {
         // Fetch data synchronously
         var user = _dbContext.Users.ToList().FirstOrDefault(u =>
             u.Email == model.Username &&
             u.Token == model.Password &&
-            // u.Password == Convert.ToBase64String(_encryptionService.Encrypt(model.Password)) &&
+            // u.Password == Convert.ToBase64String(_encryptionService.Encrypt(model.Password, u.Id)) &&
             u.TokenCreated < DateTime.UtcNow &&
             u.TokenExpiry > DateTime.UtcNow
         );
-
+        
         // If we couldn't find a user, the user is incorrect
         if (user is null)
         {
