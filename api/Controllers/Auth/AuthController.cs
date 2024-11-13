@@ -47,7 +47,7 @@ public class AuthController : ControllerBase
         _logger.LogInformation("User logged in");
 
         // generate token for user using the composed AuthToken instance
-        var token = _authTokenService.GenerateAccessToken(model.Username, user.Id);
+        var token = _authTokenService.GenerateAccessToken(model.Username, user.Id, user.Roles);
 
         // return access token for user's use
         return Ok(new { AccessToken = new JwtSecurityTokenHandler().WriteToken(token) });

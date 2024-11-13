@@ -17,7 +17,7 @@ public class AuthTokenService
     }
 
     // Generating token based on user information
-    public JwtSecurityToken GenerateAccessToken(string userName, Guid userId)
+    public JwtSecurityToken GenerateAccessToken(string userName, Guid userId, string[] roles)
     {
         try
         {
@@ -32,6 +32,9 @@ public class AuthTokenService
                 // Additional claims as needed (e.g., roles, etc.)
             };
 
+            // Add a separate Claim for each role
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            
             // Get config
             var issuer = _configuration["JwtSettings:Issuer"];
             var audience = _configuration["JwtSettings:Audience"];

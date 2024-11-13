@@ -26,6 +26,21 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<UserInfoModel>().HasData(new UserInfoModel
         {
             Id = UserID,
+            Username = "Admin",
+            Email = "admin@admin.com",
+            Password = Convert.ToBase64String(_encryptionService.Encrypt("admin", UserID)),
+            PhoneNumber = "",
+            LastLogin = DateTime.UtcNow,
+            Token = "admin_token",
+            TokenCreated = DateTime.UtcNow,
+            TokenExpiry = DateTime.UtcNow.AddDays(30),
+            Roles = ["User","Admin"]
+        });
+        
+        UserID = Guid.NewGuid();
+        modelBuilder.Entity<UserInfoModel>().HasData(new UserInfoModel
+        {
+            Id = UserID,
             Username = "User",
             Email = "user@user.com",
             Password = Convert.ToBase64String(_encryptionService.Encrypt("user", UserID)),
@@ -33,7 +48,8 @@ public class DatabaseContext : DbContext
             LastLogin = DateTime.UtcNow,
             Token = "user_token",
             TokenCreated = DateTime.UtcNow,
-            TokenExpiry = DateTime.UtcNow.AddDays(30)
+            TokenExpiry = DateTime.UtcNow.AddDays(30),
+            Roles = ["User"]
         });
     }
 }

@@ -20,6 +20,7 @@ public class UserInfoService : IUserInfoService
     public string GetEmail() => _userInfo.Email;
     public string GetPassword() => _userInfo.Password;
     public string GetToken() => _userInfo.Token;
+    public string[] GetRoles() => _userInfo.Roles;
 
     //========================================
     //                  Set                  |
@@ -36,7 +37,7 @@ public class UserInfoService : IUserInfoService
         var user = claims
             .Select(c => new { c.Type, c.Value })
             .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-        
+
         // If we have a username set it and return true
         _userInfo.Id = new Guid(user?.Value ?? string.Empty);
         return true;
@@ -81,5 +82,26 @@ public class UserInfoService : IUserInfoService
     {
         _userInfo.Token = token;
         return _userInfo.Token != "default";
+    }
+    
+    public bool SetRoles(ClaimsPrincipal? claimsPrincipal)
+    {
+        // Set claims
+        var claims = claimsPrincipal?.Claims;
+
+        // Check if we have any claims on the user
+        if (claims is null) return false;
+
+        // Select all role claims and convert them to a string array
+        var roles = claims
+            .Where(c => c.Type == ClaimTypes.Role)
+            .Select(c => c.Value)
+            .ToArray();
+
+        // Set roles in _userInfo, default to a single "User" role if none are found
+        _userInfo.Roles = roles.Length > 0 ? roles : new[] { "User" };
+
+        // Return true if we have any roles other than the default "User" role
+        return _userInfo.Roles.Any(role => role != "User");
     }
 }

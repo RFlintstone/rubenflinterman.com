@@ -1,6 +1,3 @@
-# Use ARG to define the target architecture
-ARG TARGETARCH
-
 # Start with the SDK image for the specified architecture
 FROM --platform=linux/${TARGETARCH} mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
