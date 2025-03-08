@@ -15,7 +15,7 @@
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "cra-template": "1.2.0",
-    "postcss": "^8.5.1",
+    "postcss": "^8.5.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.3",
