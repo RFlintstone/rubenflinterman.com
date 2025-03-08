@@ -1,0 +1,33 @@
+{
+  "files": {
+    "main.css": "/static/css/main.04dd4fd2.css",
+    "main.js": "/static/js/main.322daf5c.js",
+    "static/js/373.db4b97f2.chunk.js": "/static/js/373.db4b97f2.chunk.js",
+    "static/js/262.5f8f04bf.chunk.js": "/static/js/262.5f8f04bf.chunk.js",
+    "static/js/223.7249abba.chunk.js": "/static/js/223.7249abba.chunk.js",
+    "static/js/304.486fb272.chunk.js": "/static/js/304.486fb272.chunk.js",
+    "static/js/895.42597a1a.chunk.js": "/static/js/895.42597a1a.chunk.js",
+    "static/media/montserrat-latin-ext-400-normal.woff": "/static/media/montserrat-latin-ext-400-normal.85beb71046499a27877f.woff",
+    "static/media/montserrat-latin-ext-400-normal.woff2": "/static/media/montserrat-latin-ext-400-normal.1974241fa9a808c0c154.woff2",
+    "static/media/montserrat-latin-400-normal.woff": "/static/media/montserrat-latin-400-normal.30be1f65d8fd296bdbbe.woff",
+    "static/media/montserrat-latin-400-normal.woff2": "/static/media/montserrat-latin-400-normal.4bc3bc9536f24ed8076d.woff2",
+    "static/media/montserrat-cyrillic-ext-400-normal.woff": "/static/media/montserrat-cyrillic-ext-400-normal.a41db946bbde6849cc3d.woff",
+    "static/media/montserrat-cyrillic-ext-400-normal.woff2": "/static/media/montserrat-cyrillic-ext-400-normal.f455ee8f24fd612e2b15.woff2",
+    "static/media/montserrat-cyrillic-400-normal.woff": "/static/media/montserrat-cyrillic-400-normal.6772545b846bb4fee5ea.woff",
+    "static/media/montserrat-cyrillic-400-normal.woff2": "/static/media/montserrat-cyrillic-400-normal.4715847d051a164a7577.woff2",
+    "static/media/montserrat-vietnamese-400-normal.woff2": "/static/media/montserrat-vietnamese-400-normal.7da603c92e367751f991.woff2",
+    "static/media/montserrat-vietnamese-400-normal.woff": "/static/media/montserrat-vietnamese-400-normal.c14d61c769222a9ee56c.woff",
+    "index.html": "/index.html",
+    "main.04dd4fd2.css.map": "/static/css/main.04dd4fd2.css.map",
+    "main.322daf5c.js.map": "/static/js/main.322daf5c.js.map",
+    "373.db4b97f2.chunk.js.map": "/static/js/373.db4b97f2.chunk.js.map",
+    "262.5f8f04bf.chunk.js.map": "/static/js/262.5f8f04bf.chunk.js.map",
+    "223.7249abba.chunk.js.map": "/static/js/223.7249abba.chunk.js.map",
+    "304.486fb272.chunk.js.map": "/static/js/304.486fb272.chunk.js.map",
+    "895.42597a1a.chunk.js.map": "/static/js/895.42597a1a.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.04dd4fd2.css",
+    "static/js/main.322daf5c.js"
+  ]
+}

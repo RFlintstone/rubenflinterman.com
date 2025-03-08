@@ -1,0 +1,157 @@
+﻿<!DOCTYPE html>
+<html lang="en" style="scrollbar-color: #c4c4c400 transparent;">
+
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <base href="/"/>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet"/>
+    <link rel="icon" type="image/ico" href="favicon.ico"/>
+    <HeadOutlet @rendermode="InteractiveServer"/>
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet"/>
+</head>
+
+<body>
+@* <canvas id="mouse-tracking-canvas"></canvas><br> *@
+@* <span id="result"></span> *@
+
+<Routes @rendermode="InteractiveServer"/>
+<script src="_framework/blazor.web.js"></script>
+<script src="_content/MudBlazor/MudBlazor.min.js"></script>
+</body>
+
+<style>
+    body {
+        margin: 0; /* Remove default margins */
+        position: relative; /* Set position to relative for absolute positioning of other content *//
+    }
+</style>
+
+<script>
+    class Circle {
+        constructor(x, y, radius, name) {
+            this.x = x;
+            this.y = y;
+            this.radius = radius;
+            this.name = name;
+            this.element = this.createCircleElement(); // Create DOM element for the circle
+            document.body.appendChild(this.element); // Append circle to body
+        }
+
+        createCircleElement() {
+            const div = document.createElement('div');
+            div.className = 'circle';
+            div.style.width = `${this.radius * 2}px`;
+            div.style.height = `${this.radius * 2}px`;
+            div.style.left = `${this.x - this.radius}px`;
+            div.style.top = `${this.y - this.radius}px`;
+            div.style.display = 'flex'; // Use flexbox for centering text
+            div.style.alignItems = 'center'; // Center vertically
+            div.style.justifyContent = 'center'; // Center horizontally
+            div.style.position = 'absolute'; // Position absolute for free movement
+
+            // Use the specified radial gradient for the background
+            div.style.background = 'radial-gradient(circle, rgba(74, 134, 255, 1) 0%, rgba(255, 255, 255, 0), transparent)';
+            div.style.border = 'none'; // Circle border
+            div.style.zIndex = '-999'; // Set z-index to 0 to place it below other elements
+            return div;
+        }
+
+        updatePosition() {
+            this.element.style.left = `${this.x - this.radius}px`;
+            this.element.style.top = `${this.y - this.radius}px`;
+        }
+    }
+
+    let mouseCircle = new Circle(200, 210, 200, 'Mouse'); // Initial circle position
+    let circles = [mouseCircle];
+
+    // Function to check if a circle hits the window borders
+    function checkWindowCollision(circle) {
+        const canvasLeft = 0;
+        const canvasTop = 0;
+        const canvasRight = window.innerWidth;
+        const canvasBottom = window.innerHeight;
+
+        let hitBorder = null;
+
+        if (circle.x - circle.radius < canvasLeft-80) {
+            hitBorder = 'left';
+        } else if (circle.x + circle.radius > canvasRight+80) {
+            hitBorder = 'right';
+        } else if (circle.y - circle.radius < canvasTop-150) {
+            hitBorder = 'top';
+        } else if (circle.y + circle.radius > canvasBottom) {
+            hitBorder = 'bottom';
+        }
+
+        return hitBorder; // Return which border is hit, or null if no collision
+    }
+
+    // Update result text
+    // function updateResults() {
+    //     let result = document.getElementById('result');
+    //     // Clear previous result and update with new status
+    //     result.innerText = 'MouseCircle hits window border: ' + checkWindowCollision(mouseCircle);
+    // }
+
+    // Create and update Circle B based on mouse position
+    let lastX = mouseCircle.x; // Last valid X position
+    let lastY = mouseCircle.y; // Last valid Y position
+    let blockedDirections = { x: false, y: false }; // Blocked movement directions
+
+    document.addEventListener('mousemove', (event) => {
+        // Get the current mouse position
+        let newX = event.clientX + 5; // Get X position of mouse
+        let newY = event.clientY - 50; // Get Y position of mouse
+
+        // Update Circle B's position to the mouse coordinates
+        mouseCircle.x = newX;
+        mouseCircle.y = newY;
+
+        // Check for collisions
+        const collision = checkWindowCollision(mouseCircle);
+
+        if (collision) {
+            // If a collision occurs, block movement in the direction of the border hit
+            if (collision === 'top' || collision === 'bottom') {
+                blockedDirections.y = true; // Block vertical movement
+            } else if (collision === 'left' || collision === 'right') {
+                blockedDirections.x = true; // Block horizontal movement
+            }
+        } else {
+            // Reset blocks if there's no collision
+            blockedDirections = { x: false, y: false };
+        }
+
+        // Update positions based on blocked directions
+        if (blockedDirections.x) {
+            mouseCircle.x = lastX; // Maintain the last valid X position
+        } else {
+            lastX = mouseCircle.x; // Update last valid X position
+        }
+
+        if (blockedDirections.y) {
+            mouseCircle.y = lastY; // Maintain the last valid Y position
+        } else {
+            lastY = mouseCircle.y; // Update last valid Y position
+        }
+
+        // Update circle position
+        mouseCircle.updatePosition();
+
+        // updateResults(); // Update results
+    });
+
+    // Initial draw of circles and results
+    circles.forEach(circle => circle.updatePosition()); // Position all circles initially
+    // updateResults(); // Update results
+
+    // Optionally create a div for results if it doesn't exist
+    if (!document.getElementById('result')) {
+        const resultDiv = document.createElement('div');
+        resultDiv.id = 'result';
+        document.body.appendChild(resultDiv);
+    }
+</script>
+</html>
