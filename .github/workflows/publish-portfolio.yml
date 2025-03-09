@@ -93,8 +93,8 @@ jobs:
           platforms: linux/arm64/v8,linux/amd64
           push: true
           tags: |
-            ghcr.io/RFlintstone/rubenflinterman.com:latest
-            ghcr.io/RFlintstone/rubenflinterman.com:${{ github.sha }}
+            ghcr.io/rflintstone/rubenflinterman.com:latest
+            ghcr.io/rflintstone/rubenflinterman.com:${{ github.sha }}
 
       # Step 11: Post Status Check (Optional)
       - name: Build Summary
