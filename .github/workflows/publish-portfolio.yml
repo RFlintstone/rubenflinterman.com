@@ -37,13 +37,13 @@ jobs:
 
       # Step 3: Build and Test React frontend
       - name: Install React Dependencies (Frontend)
-        working-directory: com.rubenflinterman.frontend
+        working-directory: .
         run: npm install
       - name: Build React (Frontend)
-        working-directory: com.rubenflinterman.frontend
+        working-directory: .
         run: npm run build
       - name: Test React (Frontend)
-        working-directory: com.rubenflinterman.frontend
+        working-directory: .
         run: npm test -- --watchAll=false
 
       # Step 4: Set up Java for Quarkus backend
@@ -55,17 +55,17 @@ jobs:
 
       # Step 5: Grant execute permission for mvnw
       - name: Grant execute permission for mvnw
-        working-directory: com.rubenflinterman
+        working-directory: .
         run: chmod +x ./mvnw
 
       # Step 6: Build Quarkus backend
       - name: Build Quarkus Application
-        working-directory: com.rubenflinterman
+        working-directory: .
         run: ./mvnw package -DskipTests
 
       # Step 7: Test Quarkus backend
       - name: Test Quarkus (Backend)
-        working-directory: com.rubenflinterman
+        working-directory: .
         run: ./mvnw test
 
       # Step 8: Set up Docker Buildx
