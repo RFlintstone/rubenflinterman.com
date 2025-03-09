@@ -4,7 +4,11 @@ import Grid from '@mui/material/Grid2';
 import GradientContainer from "../theme/GradientContainer";
 import GlassEffect from "../theme/GlassEffect";
 
-const Projects: React.FC = () => {
+interface ThemeProps {
+    mode: "light" | "dark";
+}
+
+const Projects: React.FC<ThemeProps> = ({mode}) => {
     return (
         <>
             <GradientContainer>
@@ -19,7 +23,21 @@ const Projects: React.FC = () => {
                         justifyContent: "center", // Center vertically
                         alignItems: "center", // Center horizontally
                         mx: "auto", // Center horizontally in the viewport
-                        overflow: "auto"
+                        overflow: "auto",
+                        '&::-webkit-scrollbar': {
+                            width: '12px',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            backgroundColor: mode === 'light' ? 'rgba(136, 136, 136, 0.6)' : 'rgba(68, 68, 68, 0.6)',
+                            borderRadius: '6px',
+                        },
+                        '&::-webkit-scrollbar-thumb:hover': {
+                            backgroundColor: mode === 'light' ? 'rgba(85, 85, 85, 0.8)' : 'rgba(34, 34, 34, 0.8)',
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            backgroundColor: mode === 'light' ? 'rgba(241, 241, 241, 0.4)' : 'rgba(51, 51, 51, 0.6)',
+                            borderRadius: '6px',
+                        },
                     }}
                 >
                     <Box

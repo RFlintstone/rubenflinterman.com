@@ -25,7 +25,7 @@ const App: React.FC<IAppProps> = ({mode, setMode}) => {
                 <Routes>
                     <Route path="/" element={<Home/>}/>
                     <Route path="/about" element={<About/>}/>
-                    <Route path="/projects" element={<Projects/>}/>
+                    <Route path="/projects" element={<Projects mode={sessionStorage.getItem("theme") as "light" | "dark" || "dark" }/>}/>
                     <Route path="/privacy-policy" element={<PrivacyPolicy/>}/>
                     {(
                         <Route path="*" element={<NotFound/>}/>
