@@ -37,13 +37,13 @@ jobs:
 
       # Step 3: Build and Test React frontend
       - name: Install React Dependencies (Frontend)
-        working-directory: .
+        working-directory: portfolio/com.rubenflinterman.frontend
         run: npm install
       - name: Build React (Frontend)
-        working-directory: .
+        working-directory: portfolio/com.rubenflinterman.frontend
         run: npm run build
       - name: Test React (Frontend)
-        working-directory: .
+        working-directory: portfolio/com.rubenflinterman.frontend
         run: npm test -- --watchAll=false
 
       # Step 4: Set up Java for Quarkus backend
@@ -55,17 +55,17 @@ jobs:
 
       # Step 5: Grant execute permission for mvnw
       - name: Grant execute permission for mvnw
-        working-directory: .
+        working-directory: portfolio/com.rubenflinterman
         run: chmod +x ./mvnw
 
       # Step 6: Build Quarkus backend
       - name: Build Quarkus Application
-        working-directory: .
+        working-directory: portfolio/com.rubenflinterman
         run: ./mvnw package -DskipTests
 
       # Step 7: Test Quarkus backend
       - name: Test Quarkus (Backend)
-        working-directory: .
+        working-directory: portfolio/com.rubenflinterman
         run: ./mvnw test
 
       # Step 8: Set up Docker Buildx
@@ -82,14 +82,14 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_PAT }}
 
       # Step 10: Build and Push Docker Image
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
-          context: ./com.rubenflinterman
-          file: ./com.rubenflinterman/src/main/docker/Dockerfile.jvm
+          context: portfolio/com.rubenflinterman
+          file: portfolio/com.rubenflinterman/src/main/docker/Dockerfile.jvm
           platforms: linux/arm64/v8,linux/amd64
           push: true
           tags: |
