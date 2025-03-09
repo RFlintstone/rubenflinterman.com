@@ -35,7 +35,7 @@ const About: React.FC = () => {
                             maxHeight: "-webkit-fill-available",
                         }}
                     >
-                        <Grid container spacing={5} alignItems="center" justifyContent="center">
+                        <Grid container spacing={5} alignItems="flex-start" justifyContent="center">
                             {/* Left: Image */}
                             <Grid
                                 size={{xs: 12, sm: 4, md: 4, lg: 3, xl: 3}} // Adjusted for all screen sizes
