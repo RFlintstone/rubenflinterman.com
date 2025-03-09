@@ -1,7 +1,6 @@
 import React from "react";
 import {Avatar, Box, Chip, Typography} from "@mui/material";
 import GradientContainer from "../theme/GradientContainer";
-import GlassEffect from "../theme/GlassEffect";
 
 const Home: React.FC = () => {
     return (
