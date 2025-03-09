@@ -93,6 +93,7 @@ jobs:
           platforms: linux/arm64/v8,linux/amd64
           push: true
           tags: |
+            ghcr.io/rflintstone/rubenflinterman.com-portfolio:main
             ghcr.io/rflintstone/rubenflinterman.com-portfolio:latest
             ghcr.io/rflintstone/rubenflinterman.com-portfolio:${{ github.sha }}
 
