@@ -28,6 +28,7 @@ const Home: React.FC = () => {
                             justifyContent: "center", // Center vertically
                             alignItems: "flex-start", // Center horizontally
                             textAlign: "left", // Centers the text horizontally
+                            marginTop: {xs: "32vh", sm: "0vh"},
                             marginBottom: "5vh", // Adjust this value to raise the content higher
                         }}
                     >
