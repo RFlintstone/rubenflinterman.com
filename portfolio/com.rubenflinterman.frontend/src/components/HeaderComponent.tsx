@@ -1,22 +1,29 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect} from "react";
 import {AppBar, Button, Container, styled, Switch, Toolbar, Typography,} from "@mui/material";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import {useLocation} from "react-router-dom";
 import GlassEffect from "../theme/GlassEffect";
 
-const StyledToolbar = styled(Toolbar)(({theme}) => ({
+const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     padding: "8px 12px",
     flexShrink: 0,
+    flexDirection: "column", // Stack buttons on small screens
+    gap: theme.spacing(1), // Add spacing between stacked items
+    [theme.breakpoints.up("sm")]: {
+        flexDirection: "row", // Row layout on larger screens
+        gap: 0,
+    },
 }));
 
-const HeaderComponent: React.FC<{ mode: string; setMode: (mode: string) => void }> = ({mode, setMode}) => {
+
+const HeaderComponent: React.FC<{ mode: string; setMode: (mode: "light" | "dark") => void; setHeaderHeight: (height: number) => void }> = ({ mode, setMode, setHeaderHeight }) => {
     const [pageName, setPageName] = React.useState<string | undefined>(undefined);
-    const [, setHeaderHeight] = useState<number>(0);
     const toggleTheme = () => setMode(mode === "light" ? "dark" : "light");
+    // const [, setHeaderHeight] = useState<number>(0);
 
     const location = useLocation();
 
@@ -31,9 +38,15 @@ const HeaderComponent: React.FC<{ mode: string; setMode: (mode: string) => void 
     }, [location]);
 
     useEffect(() => {
-        const header = document.getElementById("header-component");
-        if (header) setHeaderHeight(header.offsetHeight);
-    }, []);
+        const updateHeaderHeight = () => {
+            const header = document.getElementById("header-component");
+            if (header) setHeaderHeight(header.offsetHeight);
+        };
+
+        updateHeaderHeight();
+        window.addEventListener("resize", updateHeaderHeight);
+        return () => window.removeEventListener("resize", updateHeaderHeight);
+    }, [setHeaderHeight]);
 
     return (
         <>

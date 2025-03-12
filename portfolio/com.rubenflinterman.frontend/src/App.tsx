@@ -1,5 +1,5 @@
 import './App.css';
-import React, {lazy} from 'react';
+import React, {lazy, useState} from 'react';
 import IAppProps from "./components/IAppProps";
 import {BrowserRouter, Route, Routes} from "react-router-dom";
 import HeaderComponent from "./components/HeaderComponent";
@@ -12,6 +12,8 @@ const PrivacyPolicy = lazy(() => import('./views/PrivacyPolicy'));
 const NotFound = lazy(() => import('./views/NotFound'));
 
 const App: React.FC<IAppProps> = ({mode, setMode}) => {
+    const [, setHeaderHeight] = useState(0);
+
     const toggleTheme = () => {
         const newMode = mode === 'light' ? 'dark' : 'light';
         setMode(newMode);
@@ -21,7 +23,7 @@ const App: React.FC<IAppProps> = ({mode, setMode}) => {
     return (
         <>
             <BrowserRouter>
-                <HeaderComponent mode={mode} setMode={toggleTheme}/>
+                <HeaderComponent mode={mode} setMode={setMode} setHeaderHeight={setHeaderHeight} />
                 <Routes>
                     <Route path="/" element={<Home/>}/>
                     <Route path="/about" element={<About/>}/>

@@ -17,7 +17,7 @@ const Projects: React.FC<ThemeProps> = ({mode}) => {
                         position: "relative", // Remove absolute positioning
                         width: "90vw", // Slightly smaller width for mobile
                         height: "auto", // Let the height adjust dynamically
-                        marginTop: "7vh",
+                        marginTop: {xs: "32vh", sm: "7vh"},
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center", // Center vertically
