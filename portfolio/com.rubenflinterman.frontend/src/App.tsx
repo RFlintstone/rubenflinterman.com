@@ -23,11 +23,13 @@ const App: React.FC<IAppProps> = ({mode, setMode}) => {
     return (
         <>
             <BrowserRouter>
-                <HeaderComponent mode={mode} setMode={setMode} setHeaderHeight={setHeaderHeight} />
+                <HeaderComponent mode={mode} setMode={setMode} setHeaderHeight={setHeaderHeight}/>
                 <Routes>
                     <Route path="/" element={<Home/>}/>
-                    <Route path="/about" element={<About/>}/>
-                    <Route path="/projects" element={<Projects mode={sessionStorage.getItem("theme") as "light" | "dark" || "dark" }/>}/>
+                    <Route path="/about"
+                           element={<About mode={sessionStorage.getItem("theme") as "light" | "dark" || "dark"}/>}/>
+                    <Route path="/projects"
+                           element={<Projects mode={sessionStorage.getItem("theme") as "light" | "dark" || "dark"}/>}/>
                     <Route path="/privacy-policy" element={<PrivacyPolicy/>}/>
                     {(
                         <Route path="*" element={<NotFound/>}/>
