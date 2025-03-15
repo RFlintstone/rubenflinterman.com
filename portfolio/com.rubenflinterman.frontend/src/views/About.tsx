@@ -8,7 +8,11 @@ import TranslateIcon from '@mui/icons-material/Translate';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import GitHubIcon from '@mui/icons-material/GitHub';
 
-const About: React.FC = () => {
+interface ThemeProps {
+    mode: "light" | "dark";
+}
+
+const About: React.FC<ThemeProps> = ({mode}) => {
     return (
         <>
             <GradientContainer>
@@ -23,7 +27,21 @@ const About: React.FC = () => {
                         justifyContent: "center", // Center vertically
                         alignItems: "center", // Center horizontally
                         mx: "auto", // Center horizontally in the viewport
-                        overflow: "auto"
+                        overflow: "auto",
+                        '&::-webkit-scrollbar': {
+                            width: '12px',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            backgroundColor: mode === 'light' ? 'rgba(136, 136, 136, 0.6)' : 'rgba(68, 68, 68, 0.6)',
+                            borderRadius: '6px',
+                        },
+                        '&::-webkit-scrollbar-thumb:hover': {
+                            backgroundColor: mode === 'light' ? 'rgba(85, 85, 85, 0.8)' : 'rgba(34, 34, 34, 0.8)',
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            backgroundColor: mode === 'light' ? 'rgba(241, 241, 241, 0.4)' : 'rgba(51, 51, 51, 0.6)',
+                            borderRadius: '6px',
+                        },
                     }}
                 >
                     <Box
