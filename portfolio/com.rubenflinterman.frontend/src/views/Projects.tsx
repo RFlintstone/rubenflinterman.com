@@ -67,19 +67,13 @@ const Projects: React.FC<ThemeProps> = ({mode}) => {
                                         {/*</Typography>*/}
                                     </Box>
                                     <Typography variant="body1" textAlign="left">
-                                        The Patiënt-ID/Expert-By-Experience project, sponsored by Sogeti, is currently
-                                        in the research phase and has not yet moved to the coding stage. The project
-                                        focuses on two innovative concepts aimed at improving patient care and data
-                                        management. The Patiënt-ID system is designed to simplify the management and
-                                        sharing of medical data, making it easily accessible to both patients and
-                                        healthcare providers without the burden of complex login procedures or
-                                        unnecessary administration. This system will comply with existing standards like
-                                        MedMij and GDPR. The Expert-By-Experience platform will provide a secure space
-                                        for patients to share their experiences and access verified information from
-                                        trusted sources such as Erasmus UMC and WHO. The project is still in
-                                        development, with ongoing market research, expert interviews, and technical
-                                        evaluations to guide the design of solutions that enhance healthcare
-                                        accessibility and quality, particularly for individuals with disabilities.
+                                        The Patiënt-ID/Expert-By-Experience project, sponsored by Sogeti, has been successfully completed as part of my studies at Rotterdam University of Applied Sciences.
+                                        The project focused on two innovative concepts aimed at improving patient care and reducing the workload of healthcare professionals. 
+                                        The Patiënt-ID system was conceptualized to simplify the management and sharing of medical data, making it easily accessible to both patients and healthcare providers without the burden of complex login procedures or unnecessary administration. 
+                                        The concept aligns with existing standards such as MedMij and GDPR.
+                                        For the Expert-By-Experience platform, we conducted extensive research and developed a minimum viable product (MVP). 
+                                        This platform provides a secure environment for patients to share experiences and access verified information from trusted sources such as Erasmus UMC and the WHO.
+                                        On June 18th, we presented both our findings and the MVP to a large public audience. The project concluded with a grade of 8.7, highlighting the quality of our research, development, and presentation.
                                     </Typography>
                                 </Box>
                                 <Box sx={{mb: 2}}>
