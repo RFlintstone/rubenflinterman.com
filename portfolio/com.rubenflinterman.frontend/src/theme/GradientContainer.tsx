@@ -20,7 +20,7 @@ const GradientContainer = styled(Stack)(({theme}) => ({
         display: 'flex',
         position: 'absolute',
         zIndex: -1,
-        inset: 0,
+        inset: '-1%',
         backgroundImage: 'radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%) 0%, hsl(0, 0%, 100%) 70%)',
         backgroundRepeat: 'no-repeat',
         ...theme.applyStyles('dark', {
