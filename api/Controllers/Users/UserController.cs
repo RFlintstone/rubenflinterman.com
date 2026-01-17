@@ -11,14 +11,16 @@ public class UserController(UserInfoService userInfoService) : ControllerBase
     [Authorize]
     public IActionResult Get()
     {
-        userInfoService.SetUsername(User);
         userInfoService.SetId(User);
+        userInfoService.SetUsername(User);
+        userInfoService.SetEmail(User);
         userInfoService.SetRoles(User);
         userInfoService.SetAvatarAsync(User).GetAwaiter().GetResult();
 
         return Ok(new {
-            Username = userInfoService.GetUsername(),
             Id = userInfoService.GetId(),
+            Username = userInfoService.GetUsername(),
+            Email = userInfoService.GetEmail(),
             Roles = userInfoService.GetRoles(),
             Avatar = userInfoService.GetAvatar(),
         });
@@ -28,8 +30,8 @@ public class UserController(UserInfoService userInfoService) : ControllerBase
     [Authorize]
     public IActionResult GetAdmin()
     {
-        userInfoService.SetUsername(User);
         userInfoService.SetId(User);
+        userInfoService.SetUsername(User);
         userInfoService.SetRoles(User);
 
         bool isAdmin = userInfoService.GetRoles().Contains("Admin");

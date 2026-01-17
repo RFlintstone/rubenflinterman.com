@@ -2,10 +2,10 @@
 
 namespace Api.Models.Auth;
 
-public class AuthLoginModel(string username, string password)
+public class AuthLoginModel(string email, string password)
 {
-    [Required(ErrorMessage = "Username is required.")]
-    public string Username { get; set; } = username;
+    [Required(ErrorMessage = "Email is required.")]
+    public string Email { get; set; } = email;
 
     [Required(ErrorMessage = "Password is required.")]
     [DataType(DataType.Password)]
