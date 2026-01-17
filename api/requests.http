@@ -1,5 +1,14 @@
-### GET request to example server
-GET https://examples.http-client.intellij.net/get
-    ?generated-in=IntelliJ IDEA
+### Authenticated POST request
+POST https://api.rubenflinterman.com/api/v1/auth/register
+Content-Type: application/json
 
-###
+{
+  "Username": "admin@admin.com",
+  "Password": "admin_token"
+}
+
+> {% client.global.set("token", response.body.accessToken) %}
+
+### Get user details with Bearer token
+GET https://api.rubenflinterman.com/api/v1/user/admin
+Authorization: Bearer {{token}}
