@@ -1,38 +1,30 @@
-# Start with the SDK image for the specified architecture
+# dockerfile
 FROM --platform=linux/${TARGETARCH} mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /app
- 
-# Copy and restore dependencies
+WORKDIR /src
 COPY *.csproj ./
-
-# Copy everything else and build the application
 COPY . ./
 RUN dotnet publish -c Release -o /app/out --self-contained false
 
-# Runtime image
 FROM --platform=linux/${TARGETARCH} mcr.microsoft.com/dotnet/aspnet:8.0-jammy AS runtime
 WORKDIR /app
 
-# Install OpenSSL and other required cryptographic libraries
-RUN apt-get update && apt-get install -y \
+# Install minimal crypto libs if needed
+RUN apt-get update && apt-get install -y --no-install-recommends \
     openssl \
-    libssl-dev \
-    ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
+    ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
-# Create directory for data protection keys
-RUN mkdir /app/keys && chown -R 1000:1000 /app/keys
+# Create non-root user and directories
+RUN groupadd -g 1000 appgroup \
+ && useradd -m -u 1000 -g 1000 appuser \
+ && mkdir -p /app/keys \
+ && chown -R appuser:appgroup /app /app/keys
 
-# Copy the certificate into the container and set proper permissions
-COPY ./certificate.pfx /app/certificate.pfx
-RUN chmod 644 /app/certificate.pfx
-
-# Expose ports
 EXPOSE 8080
 EXPOSE 8081
 
-# Copy the published output from the build stage
 COPY --from=build /app/out ./
 
-# Set the entry point for the app
+USER 1000:1000
+
 ENTRYPOINT ["dotnet", "Api.dll"]

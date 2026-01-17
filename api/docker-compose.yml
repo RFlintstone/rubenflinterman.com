@@ -2,47 +2,99 @@
   db:
     image: ghcr.io/cloudnative-pg/postgresql:15.4
     environment:
-      - POSTGRES_USER=pi
-      - POSTGRES_PASSWORD=12345
-      - POSTGRES_DB=app
+      - POSTGRES_USER_FILE=/run/secrets/pg_user
+      - POSTGRES_DB_FILE=/run/secrets/pg_name
+      - POSTGRES_PASSWORD_FILE=/run/secrets/pg_password
+    secrets:
+      - pg_user
+      - pg_name
+      - pg_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    expose:
+      - "5432"
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        'pg_isready -U "$(cat /run/secrets/pg_user 2>/dev/null || echo pi)" -d "$(cat /run/secrets/pg_name 2>/dev/null || echo app)" || exit 1'
+      ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
   adminer:
     image: adminer
+    depends_on:
+      - db
     ports:
-      - "8082:8080"
+      - "127.0.0.1:8082:8080"
     environment:
       - ADMINER_DEFAULT_SERVER=db
-  
+    restart: unless-stopped
+
   api:
-    image: api:latest
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
-      - "8081:8081"
-      - "3001:3001"
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:8081:8081"
     depends_on:
       - db
+    env_file:
+      - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:8080;http://+:8081
       - RUNNING_IN_DOCKER=true
-      - "Certificate__Key="
-      - "Encryption__Key=g3BckHsj+wWRseOya1dz6u+NSBkL5laHm5mSmDr3qqA="
-      - "Encryption__IV=gomY07dGhzMiUPnJp/JTuA=="
-      - "JwtSettings__Issuer=localhost"
-      - "JwtSettings__Audience=localhost"
-      - "JwtSettings__SecretKey=averylongsecretkeythatisrequiredtobeused"
-      - "ConnectionStrings__Postgres=Server=db;Port=5432;Database=app;Username=pi;Password=12345;"
-
+      - Certificate__Path=/run/secrets/certificate_pfx
+      - Certificate__Password_FILE=/run/secrets/cert_password
+      - Encryption__Key_FILE=/run/secrets/encryption_key
+      - JwtSettings__SecretKey_FILE=/run/secrets/jwt_secret
+      - JwtSettings__Issuer_FILE=/run/secrets/jwt_issuer
+      - JwtSettings__Audience_FILE=/run/secrets/jwt_audience
+      - ConnectionStrings__Postgres_FILE=/run/secrets/pg_connection_string
+    secrets:
+      - jwt_secret
+      - cert_password
+      - pg_password
+      - encryption_key
+      - jwt_issuer
+      - jwt_audience
+      - certificate_pfx
+      - pg_connection_string
     volumes:
-      - ./keys:/app/keys
-      - ./certificate.pfx:/app/certificate.pfx
+      - api_keys:/app/keys:ro
+    user: "1000:1000"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/health || exit 1" ]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+secrets:
+  pg_user:
+    file: ./secrets/pg_user
+  pg_name:
+    file: ./secrets/pg_name
+  pg_password:
+    file: ./secrets/pg_password
+  jwt_secret:
+    file: ./secrets/jwt_secret
+  cert_password:
+    file: ./secrets/cert_password
+  encryption_key:
+    file: ./secrets/encryption_key
+  jwt_issuer:
+    file: ./secrets/jwt_issuer
+  jwt_audience:
+    file: ./secrets/jwt_audience
+  certificate_pfx:
+    file: ./secrets/certificate.pfx
+  pg_connection_string:
+    file: ./secrets/pg_connection_string
 
 volumes:
   postgres_data:
+  api_keys:
