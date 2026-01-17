@@ -9,6 +9,10 @@ Content-Type: application/json
 
 > {% client.global.set("token", response.body.accessToken) %}
 
-### Get user details with Bearer token
+### Get user
+GET https://api.rubenflinterman.com/api/v1/user/
+Authorization: Bearer {{token}}
+
+### Check if user is admin
 GET https://api.rubenflinterman.com/api/v1/user/admin
 Authorization: Bearer {{token}}

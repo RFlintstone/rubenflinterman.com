@@ -14,20 +14,33 @@ public class UserController(UserInfoService userInfoService) : ControllerBase
         userInfoService.SetUsername(User);
         userInfoService.SetId(User);
         userInfoService.SetRoles(User);
-        return Ok($"You are logged in as {userInfoService.GetUsername()} with id: {userInfoService.GetId()} and roles: {string.Join(", ", userInfoService.GetRoles())}");
+
+        return Ok({
+            Username = userInfoService.GetUsername(),
+            Id = userInfoService.GetId(),
+            Roles = userInfoService.GetRoles()
+        });})
     }
 
     [HttpGet("admin")]
     [Authorize]
     public IActionResult GetAdmin()
     {
+        userInfoService.SetUsername(User);
+        userInfoService.SetId(User);
         userInfoService.SetRoles(User);
+
+        bool isAdmin = false;
+
         if (userInfoService.GetRoles().Contains("Admin"))
         {
-            userInfoService.SetUsername(User);
-            userInfoService.SetId(User);
-            return Ok($"You are logged in as administrator");
+            isAdmin = true;
         }
-        return Ok($"You are not an administrator");
+
+        return Ok({
+            Username = userInfoService.GetUsername(),
+            Id = userInfoService.GetId(),
+            isAdministrator = isAdmin,
+        })
     }
 }
