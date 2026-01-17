@@ -68,7 +68,6 @@ public class DatabaseContext : DbContext
 
         // Build URL
         var url = $"https://avi.avris.it/{imageType}-{imageSize}/{base64Identifier}.png";
-
         using var httpClient = new HttpClient();
         try
         {
