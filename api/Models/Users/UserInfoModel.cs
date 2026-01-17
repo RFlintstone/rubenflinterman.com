@@ -9,6 +9,7 @@ public class UserInfoModel
     public string Password { get; set; } = "Unknown Password";
     public string PhoneNumber { get; set; } = "Unknown Phone";
     public string[] Roles { get; set; } = { "User" };
+    public string Avatar { get; set; } = "Unknown Avatar";
 
     // User login properties
     public DateTime LastLogin { get; set; } = DateTime.UtcNow;

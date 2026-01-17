@@ -10,6 +10,7 @@ public interface IUserInfoService
     public string GetEmail();
     public string GetPassword();
     public string GetToken();
+    public string GetAvatar();
 
     // SET Methods
     bool SetId(ClaimsPrincipal? claimsPrincipal);
@@ -17,4 +18,5 @@ public interface IUserInfoService
     bool SetEmail(string email);
     bool SetPassword(string password);
     bool SetToken(string token);
+    Task<bool> SetAvatarAsync(ClaimsPrincipal? claimsPrincipal);
 }

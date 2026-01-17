@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using System.Text;
 using Api.Models.Users;
 
 namespace Api.Services.Users;
@@ -21,6 +22,7 @@ public class UserInfoService : IUserInfoService
     public string GetPassword() => _userInfo.Password;
     public string GetToken() => _userInfo.Token;
     public string[] GetRoles() => _userInfo.Roles;
+    public string GetAvatar() => _userInfo.Avatar;
 
     //========================================
     //                  Set                  |
@@ -83,7 +85,7 @@ public class UserInfoService : IUserInfoService
         _userInfo.Token = token;
         return _userInfo.Token != "default";
     }
-    
+
     public bool SetRoles(ClaimsPrincipal? claimsPrincipal)
     {
         // Set claims
@@ -103,5 +105,38 @@ public class UserInfoService : IUserInfoService
 
         // Return true if we have any roles other than the default "User" role
         return _userInfo.Roles.Any(role => role != "User");
+    }
+
+    public async Task<bool> SetAvatarAsync(ClaimsPrincipal? claimsPrincipal)
+    {
+        // Get username from claims
+        var user = claimsPrincipal?.Claims
+            .FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+
+        // Check if we have any claims on the user
+        if (string.IsNullOrEmpty(user)) return false;
+
+        // Image properties
+        var imageType = "letter"; // 'letter' or 'shape'
+        var imageSize = 128;      // min 16, max 360
+        var base64Identifier = Convert.ToBase64String(Encoding.UTF8.GetBytes(user));
+
+        // Build URL
+        var url = $"https://avi.avris.it/{imageType}-{imageSize}/{base64Identifier}.png";
+        
+        using var httpClient = new HttpClient();
+        try
+        {
+            // Download image bytes and store as Base64 string
+            var bytes = await httpClient.GetByteArrayAsync(url);
+            _userInfo.Avatar = bytes.Length > 0 ? Convert.ToBase64String(bytes) : "default";
+            return true; // succeeded
+        }
+        catch
+        {
+            // Could not fetch avatar
+            _userInfo.Avatar = "default";
+            return false;
+        }
     }
 }
