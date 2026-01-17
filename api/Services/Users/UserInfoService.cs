@@ -68,9 +68,21 @@ public class UserInfoService : IUserInfoService
         return _userInfo.Username != "default";
     }
 
-    public bool SetEmail(string email)
+    public bool SetEmail(ClaimsPrincipal? claimsPrincipal)
     {
-        _userInfo.Email = email;
+        // Set claims
+        var claims = claimsPrincipal?.Claims;
+
+        // Check if we have any claims on the user
+        if (claims is null) return false;
+
+        // Select the first available type name of our claim, this is the username
+        var user = claims
+            .Select(c => new { c.Type, c.Value })
+            .FirstOrDefault(c => c.Type == ClaimTypes.Email);
+        
+        // If we have a username set it and return true
+        _userInfo.Email = user?.Value ?? "default";
         return _userInfo.Email != "default";
     }
 

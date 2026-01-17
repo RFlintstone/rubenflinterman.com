@@ -29,9 +29,9 @@ public class AuthController : ControllerBase
     {
         // Fetch data synchronously
         var user = _dbContext.Users.ToList().FirstOrDefault(u =>
-            u.Email == model.Username &&
-            u.Token == model.Password &&
-            // u.Password == Convert.ToBase64String(_encryptionService.Encrypt(model.Password, u.Id)) &&
+            u.Email == model.Email &&
+            // u.Token == model.Password &&
+            u.Password == Convert.ToBase64String(_encryptionService.Encrypt(model.Password, u.Id)) &&
             u.TokenCreated < DateTime.UtcNow &&
             u.TokenExpiry > DateTime.UtcNow
         );
@@ -47,7 +47,7 @@ public class AuthController : ControllerBase
         _logger.LogInformation("User logged in");
 
         // generate token for user using the composed AuthToken instance
-        var token = _authTokenService.GenerateAccessToken(model.Username, user.Id, user.Roles);
+        var token = _authTokenService.GenerateAccessToken(model.Email, user.Id, user.Roles);
 
         // return access token for user's use
         return Ok(new { AccessToken = new JwtSecurityTokenHandler().WriteToken(token) });

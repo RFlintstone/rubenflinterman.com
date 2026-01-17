@@ -15,7 +15,7 @@ public interface IUserInfoService
     // SET Methods
     bool SetId(ClaimsPrincipal? claimsPrincipal);
     bool SetUsername(ClaimsPrincipal? claimsPrincipal);
-    bool SetEmail(string email);
+    bool SetEmail(ClaimsPrincipal? claimsPrincipal);
     bool SetPassword(string password);
     bool SetToken(string token);
     Task<bool> SetAvatarAsync(ClaimsPrincipal? claimsPrincipal);

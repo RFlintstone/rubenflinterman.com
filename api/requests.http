@@ -1,18 +1,18 @@
-### Authenticated POST request
+### Register token with email and password
 POST https://api.rubenflinterman.com/api/v1/auth/register
 Content-Type: application/json
 
 {
-  "Username": "admin@admin.com",
-  "Password": "admin_token"
+  "Email": "admin@admin.com",
+  "Password": "admin"
 }
 
 > {% client.global.set("token", response.body.accessToken) %}
 
-### Get user
+### Get user details
 GET https://api.rubenflinterman.com/api/v1/user/
 Authorization: Bearer {{token}}
 
-### Check if user is admin
+### Check if the user is an admin
 GET https://api.rubenflinterman.com/api/v1/user/admin
 Authorization: Bearer {{token}}
