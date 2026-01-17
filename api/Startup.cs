@@ -35,6 +35,9 @@ public class Startup
         app.UseAuthorization();
         app.MapControllers();
 
+        // Health endpoint
+        app.MapGet("/health", () => Results.Ok("API is healthy"));
+
         // Run the app.
         app.Run();
     }
