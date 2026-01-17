@@ -1,6 +1,6 @@
 # API (v1) - api.rubenflinterman.com
 
-www.api.rubenflinterman.com serves as the brains behind my website.
+[api.rubenflinterman.com](https://api.rubenflinterman.com) serves as the brains behind my website.
 It includes a token system which makes sure only authorized clients (applications or users) can make a request.
 
 -----------------
