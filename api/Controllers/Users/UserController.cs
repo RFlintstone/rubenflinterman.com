@@ -14,11 +14,13 @@ public class UserController(UserInfoService userInfoService) : ControllerBase
         userInfoService.SetUsername(User);
         userInfoService.SetId(User);
         userInfoService.SetRoles(User);
+        userInfoService.SetAvatarAsync(User).GetAwaiter().GetResult();
 
         return Ok(new {
             Username = userInfoService.GetUsername(),
             Id = userInfoService.GetId(),
             Roles = userInfoService.GetRoles(),
+            Avatar = userInfoService.GetAvatar(),
         });
     }
 
