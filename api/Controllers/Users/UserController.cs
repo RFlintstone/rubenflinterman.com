@@ -15,11 +15,11 @@ public class UserController(UserInfoService userInfoService) : ControllerBase
         userInfoService.SetId(User);
         userInfoService.SetRoles(User);
 
-        return Ok({
+        return Ok(new {
             Username = userInfoService.GetUsername(),
             Id = userInfoService.GetId(),
-            Roles = userInfoService.GetRoles()
-        });})
+            Roles = userInfoService.GetRoles(),
+        });
     }
 
     [HttpGet("admin")]
@@ -30,17 +30,13 @@ public class UserController(UserInfoService userInfoService) : ControllerBase
         userInfoService.SetId(User);
         userInfoService.SetRoles(User);
 
-        bool isAdmin = false;
+        bool isAdmin = userInfoService.GetRoles().Contains("Admin");
 
-        if (userInfoService.GetRoles().Contains("Admin"))
+        return Ok(new
         {
-            isAdmin = true;
-        }
-
-        return Ok({
             Username = userInfoService.GetUsername(),
             Id = userInfoService.GetId(),
             isAdministrator = isAdmin,
-        })
+        });
     }
 }
