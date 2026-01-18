@@ -64,7 +64,7 @@
       - certificate_pfx
       - pg_connection_string
     volumes:
-      - api_keys:/app/keys:ro
+      - api_keys:/app/keys:rw
     user: "1000:1000"
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:8080/health || exit 1" ]
@@ -93,7 +93,7 @@ secrets:
   certificate_pfx:
     file: ./secrets/certificate.pfx
   pg_connection_string:
-    file: ./secrets/pg_connection_string
+    file: ./secrets/pg_connection_string_development
 
 volumes:
   postgres_data:
