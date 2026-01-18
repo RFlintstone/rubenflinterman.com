@@ -56,6 +56,10 @@ printf '%s' "$cert_password" > "$SECRETS_DIR/cert_password"
 printf '%s' \
   "Host=$pg_service;Port=5432;Database=$pg_name;Username=$pg_user;Password=$pg_password" \
   > "$SECRETS_DIR/pg_connection_string"
+  
+printf '%s' \
+  "Host=db;Port=5432;Database=$pg_name;Username=$pg_user;Password=$pg_password" \
+  > "$SECRETS_DIR/pg_connection_string_development"
 
 # ─────────────────────────────────────────────────────────────
 # Self-signed PKCS#12 certificate

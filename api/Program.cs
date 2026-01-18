@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.RegularExpressions;
 using Api.Controllers.Auth;
 using Api.Datastore;
 using Api.Services.Auth;
@@ -64,10 +65,24 @@ public class Program
         // Prefer configuration value populated from `*_FILE` mapping; fall back to legacy env var if present
         var certificatePassword = configuration["Certificate:Password"] ?? Environment.GetEnvironmentVariable("CERT_PASSWORD");
 
-        var dpBuilder = builder.Services.AddDataProtection()
-            .PersistKeysToFileSystem(new DirectoryInfo(keyPath))
-            .SetApplicationName(configuration["DataProtection:AppName"] ?? "Api-Prod");
+        // Normalize and sanitize keypath
+        var sanitizedKeyPath = Path.GetFullPath(keyPath);
+        
+        // Restrict to a base directory (HIGHLY recommended)
+        var allowedBasePathKeys = Path.GetFullPath("/app/keys");
 
+        if (!sanitizedKeyPath.StartsWith(allowedBasePathKeys, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("Invalid DataProtection key path.");
+        }
+        
+        // Ensure directory exists
+        Directory.CreateDirectory(sanitizedKeyPath);
+        
+        var dpBuilder = builder.Services.AddDataProtection()
+            .PersistKeysToFileSystem(new DirectoryInfo(sanitizedKeyPath))
+            .SetApplicationName(configuration["DataProtection:AppName"] ?? "Api-Prod");
+        
         if (!string.IsNullOrEmpty(certificatePath) && File.Exists(certificatePath) && !string.IsNullOrEmpty(certificatePassword))
         {
             try
