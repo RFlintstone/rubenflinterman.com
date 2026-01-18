@@ -1,4 +1,9 @@
-﻿**/.dockerignore
+﻿# Custom
+**/secrets
+**/*.pfx
+
+# Default
+**/.dockerignore
 **/.env
 **/.git
 **/.gitignore

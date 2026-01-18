@@ -1,5 +1,8 @@
+@URL=http://localhost:8080
+#@URL=https://api.rubenflinterman.com
+
 ### Register token with email and password
-POST https://api.rubenflinterman.com/api/v1/auth/register
+POST {{URL}}/api/v1/auth/register
 Content-Type: application/json
 
 {
@@ -10,9 +13,9 @@ Content-Type: application/json
 > {% client.global.set("token", response.body.accessToken) %}
 
 ### Get user details
-GET https://api.rubenflinterman.com/api/v1/user/
+GET {{URL}}/api/v1/user/
 Authorization: Bearer {{token}}
 
 ### Check if the user is an admin
-GET https://api.rubenflinterman.com/api/v1/user/admin
+GET {{URL}}/api/v1/user/admin
 Authorization: Bearer {{token}}
