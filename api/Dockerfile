@@ -1,22 +1,22 @@
 # dockerfile
-FROM --platform=linux/${TARGETARCH} mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM --platform=linux/${TARGETARCH} mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY *.csproj ./
 COPY . ./
 RUN dotnet publish -c Release -o /app/out --self-contained false
 
-FROM --platform=linux/${TARGETARCH} mcr.microsoft.com/dotnet/aspnet:8.0-jammy AS runtime
+FROM --platform=linux/${TARGETARCH} mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
 WORKDIR /app
 
 # Install minimal crypto libs if needed
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apk add --no-cache \
     openssl \
     ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
+    libressl
 
 # Create non-root user and directories
-RUN groupadd -g 1000 appgroup \
- && useradd -m -u 1000 -g 1000 appuser \
+RUN addgroup -g 1000 appgroup \
+ && adduser -D -u 1000 -G appgroup appuser \
  && mkdir -p /app/keys \
  && chown -R appuser:appgroup /app /app/keys
 

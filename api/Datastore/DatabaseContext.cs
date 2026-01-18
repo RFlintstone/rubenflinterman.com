@@ -12,22 +12,22 @@ public class DatabaseContext : DbContext
     private readonly EncryptionService? _encryptionService;
     public DbSet<UserInfoModel> Users { get; set; }
 
-    public DatabaseContext(DbContextOptions<DatabaseContext> options, EncryptionService encryptionService, IConfiguration configuration) : base(options)
+    public DatabaseContext(DbContextOptions<DatabaseContext> options, EncryptionService encryptionService,
+        IConfiguration configuration) : base(options)
     {
         _encryptionService = encryptionService;
     }
-
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UserInfoModel>().HasKey(x => x.Id);
 
-        var adminId = Guid.NewGuid();
+        var adminId = Guid.Parse("00000000-0000-0000-0000-000000000001");
         var adminUsername = "Admin";
 
-        var userId = Guid.NewGuid();
+        var userId = Guid.Parse("00000000-0000-0000-0000-000000000002");
         var userUsername = "User";
-        
+
         modelBuilder.Entity<UserInfoModel>().HasData(new UserInfoModel
         {
             Id = adminId,
@@ -35,10 +35,10 @@ public class DatabaseContext : DbContext
             Email = "admin@admin.com",
             Password = Convert.ToBase64String(_encryptionService.Encrypt("admin", adminId)),
             PhoneNumber = "",
-            LastLogin = DateTime.UtcNow,
+            LastLogin = new DateTime(2026, 1, 1).ToUniversalTime(),
             Token = "admin_token",
-            TokenCreated = DateTime.UtcNow,
-            TokenExpiry = DateTime.UtcNow.AddDays(30),
+            TokenCreated = new DateTime(2026, 1, 1).ToUniversalTime(),
+            TokenExpiry = new DateTime(2026, 1, 2).ToUniversalTime(),
             Roles = ["User", "Admin"],
             Avatar = downloadDefaultAvatar(adminUsername).Result
         });
@@ -50,10 +50,10 @@ public class DatabaseContext : DbContext
             Email = "user@user.com",
             Password = Convert.ToBase64String(_encryptionService.Encrypt("user", userId)),
             PhoneNumber = "",
-            LastLogin = DateTime.UtcNow,
+            LastLogin = new DateTime(2026, 1, 1).ToUniversalTime(),
             Token = "user_token",
-            TokenCreated = DateTime.UtcNow,
-            TokenExpiry = DateTime.UtcNow.AddDays(30),
+            TokenCreated = new DateTime(2026, 1, 1).ToUniversalTime(),
+            TokenExpiry = new DateTime(2026, 1, 2).ToUniversalTime(),
             Roles = ["User"],
             Avatar = downloadDefaultAvatar(userUsername).Result
         });
