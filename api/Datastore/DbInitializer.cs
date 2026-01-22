@@ -9,23 +9,24 @@ public static class DbInitializer
 {
     public static async Task InitializeAsync(IServiceProvider serviceProvider)
     {
+        // Create a new scope to retrieve scoped services
         using var scope = serviceProvider.CreateScope();
         var services = scope.ServiceProvider;
         
+        // Retrieve the required services
         var context = services.GetRequiredService<DatabaseContext>();
         var encryption = services.GetRequiredService<EncryptionService>();
         var avatarService = services.GetRequiredService<AvatarService>();
 
-        // 1. Ensure the database is created and up to date
-        // This executes the migrations you see in your /Migrations folder
+        // Execute any pending migrations
         await context.Database.MigrateAsync();
 
-        // 2. Look for the seeded users that need "Hydration" 
-        // (Users created in OnModelCreating that have empty passwords/default avatars)
+        // Find users with default properties
         var usersToUpdate = await context.Users
             .Where(u => u.Password == "" || u.Avatar == "default")
             .ToListAsync();
 
+        // Update each user with default properties
         if (usersToUpdate.Any())
         {
             foreach (var user in usersToUpdate)
@@ -38,10 +39,11 @@ public static class DbInitializer
                 // Fetch the actual avatar from the external API
                 user.Avatar = await avatarService.GetDefaultAvatarBase64Async(user.Username);
                 
-                // Set a proper timestamp
+                // Set a timestamp
                 user.LastLogin = DateTime.UtcNow;
             }
 
+            // Save changes for all updated users
             await context.SaveChangesAsync();
         }
     }

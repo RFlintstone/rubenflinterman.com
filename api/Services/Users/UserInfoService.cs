@@ -14,7 +14,6 @@ public class UserInfoService : IUserInfoService
     public UserInfoService(DatabaseContext dbContext)
     {
         _dbContext = dbContext;
-        // _userInfo = new UserInfoModel(); // Initialize the model
     }
 
     //========================================
@@ -74,23 +73,25 @@ public class UserInfoService : IUserInfoService
 
     public async Task<bool> SetEmail(ClaimsPrincipal? claimsPrincipal)
     {
-        // 1. Get the ID from the JWT
+        // Get the ID from the JWT
         var idValue = claimsPrincipal?.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!Guid.TryParse(idValue, out var userId)) return false;
 
-        // 2. Look up the user in the DB (only fetch the Avatar column for speed)
+        // Look up the user in the DB (only fetch the Avatar column for speed)
         var email = await _dbContext.Users
             .AsNoTracking()
             .Where(u => u.Id == userId)
             .Select(u => u.Email)
             .FirstOrDefaultAsync();
 
+        // If we have an email, set it and return true
         if (email is not null)
         {
             _userInfo.Email = email;
             return true;
         }
 
+        // If there's no email, set a default value and return false
         _userInfo.Email = "default";
         return false;
     }
@@ -130,23 +131,25 @@ public class UserInfoService : IUserInfoService
 
     public async Task<bool> SetAvatarAsync(ClaimsPrincipal? claimsPrincipal)
     {
-        // 1. Get the ID from the JWT
+        // Get the ID from the JWT
         var idValue = claimsPrincipal?.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!Guid.TryParse(idValue, out var userId)) return false;
 
-        // 2. Look up the user in the DB (only fetch the Avatar column for speed)
+        // Look up the user in the DB (only fetch the Avatar column for speed)
         var avatar = await _dbContext.Users
             .AsNoTracking()
             .Where(u => u.Id == userId)
             .Select(u => u.Avatar)
             .FirstOrDefaultAsync();
 
+        // If we have an avatar, set it and return true
         if (avatar is not null)
         {
             _userInfo.Avatar = avatar;
             return true;
         }
 
+        // If there's no avatar, set a default value and return false
         _userInfo.Avatar = "default";
         return false;
     }

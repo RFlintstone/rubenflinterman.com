@@ -28,18 +28,19 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] UserRegistrationModel model)
     {
-        // 1. Check if user already exists
+        // Check if a user with the provided email already exists
         if (await _dbContext.Users.AnyAsync(u => u.Email == model.Email))
         {
             return Conflict("A user with this email already exists.");
         }
 
-        // 2. Create the new User Entity
+        // Generate new User ID
         var newUserId = Guid.NewGuid();
         
         // Fetch the avatar (Still awaiting here for simplicity, but it's now decoupled)
         var avatarBase64 = await _avatarService.GetDefaultAvatarBase64Async(model.Username);
         
+        // Create the new user
         var newUser = new UserInfoModel
         {
             Id = newUserId,
@@ -56,16 +57,17 @@ public class AuthController : ControllerBase
             RefreshTokenExpiry = DateTime.UtcNow.AddDays(7)
         };
 
-        // 3. Save to Database
+        // Save the new user to the database
         _dbContext.Users.Add(newUser);
         await _dbContext.SaveChangesAsync();
 
+        // Log the registration event, if logging is enabled
         if (_logger.IsEnabled(LogLevel.Information))
         {
             _logger.LogInformation("New user registered @ {timestamp}", DateTime.UtcNow);
         }
 
-        // 4. Return success (Optionally return the initial tokens so they are logged in immediately)
+        // Return success (Optionally return the initial tokens so they are logged in immediately)
         return CreatedAtAction(nameof(Register), new { id = newUser.Id }, new { 
             Message = "User registered successfully",
             UserId = newUser.Id

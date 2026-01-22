@@ -6,10 +6,9 @@ public class DatabaseContext : DbContext
 {
     private readonly EncryptionService _encryptionService;
     private readonly IConfiguration _configuration;
-
+    
     public DbSet<UserInfoModel> Users { get; set; }
 
-    // Constructor with dependencies
     public DatabaseContext(
         DbContextOptions<DatabaseContext> options,
         EncryptionService encryptionService,
@@ -21,10 +20,11 @@ public class DatabaseContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Configure primary keys
         modelBuilder.Entity<UserInfoModel>().HasKey(x => x.Id);
 
+        // Seed initial admin user
         var adminId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-
         modelBuilder.Entity<UserInfoModel>().HasData(new UserInfoModel
         {
             Id = adminId,

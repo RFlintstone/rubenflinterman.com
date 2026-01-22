@@ -34,12 +34,15 @@ public class UserController(UserInfoService userInfoService) : ControllerBase
     [Authorize]
     public IActionResult GetAdmin()
     {
+        // Populate the service state from the JWT Claims
         userInfoService.SetId(User);
         userInfoService.SetUsername(User);
         userInfoService.SetRoles(User);
 
+        // Check if the user has the "Admin" role
         bool isAdmin = userInfoService.GetRoles().Contains("Admin");
 
+        // Return user information along with admin status
         return Ok(new
         {
             Username = userInfoService.GetUsername(),
