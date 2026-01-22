@@ -22,7 +22,10 @@ public class AuthTokenService
         try
         {
             // Log token request
-            _logger.LogInformation($"Generating access token at {DateTime.Now}");
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("Generating access token @ {timestamp}", DateTime.UtcNow);
+            }
 
             // Create user claims
             var claims = new List<Claim>
@@ -52,14 +55,18 @@ public class AuthTokenService
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(10), // Adjust as needed
+                expires: DateTime.UtcNow.AddMinutes(60), // Adjust as needed
                 signingCredentials: new SigningCredentials(
                     new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
                     SecurityAlgorithms.HmacSha256
                 )
             );
-            
-            _logger.LogInformation($"Access token generated at {DateTime.Now}");
+
+            // Log token generation, if information logging is enabled
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("Access token generated @ {timestamp}", DateTime.UtcNow);
+            }
 
             // Return token
             return token;

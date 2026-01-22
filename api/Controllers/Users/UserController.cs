@@ -9,14 +9,18 @@ public class UserController(UserInfoService userInfoService) : ControllerBase
 {
     [HttpGet("")] 
     [Authorize]
-    public IActionResult Get()
+    public async Task<IActionResult> Get() // Added async Task
     {
+        // Populate the service state from the JWT Claims
         userInfoService.SetId(User);
         userInfoService.SetUsername(User);
-        userInfoService.SetEmail(User);
+        await userInfoService.SetEmail(User);
         userInfoService.SetRoles(User);
-        userInfoService.SetAvatarAsync(User).GetAwaiter().GetResult();
+        
+        // Use await instead of .GetAwaiter().GetResult()
+        await userInfoService.SetAvatarAsync(User);
 
+        // Return user information
         return Ok(new {
             Id = userInfoService.GetId(),
             Username = userInfoService.GetUsername(),
@@ -30,12 +34,15 @@ public class UserController(UserInfoService userInfoService) : ControllerBase
     [Authorize]
     public IActionResult GetAdmin()
     {
+        // Populate the service state from the JWT Claims
         userInfoService.SetId(User);
         userInfoService.SetUsername(User);
         userInfoService.SetRoles(User);
 
+        // Check if the user has the "Admin" role
         bool isAdmin = userInfoService.GetRoles().Contains("Admin");
 
+        // Return user information along with admin status
         return Ok(new
         {
             Username = userInfoService.GetUsername(),

@@ -11,8 +11,8 @@
       - pg_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    expose:
-      - "5432"
+    ports:
+      - "127.0.0.1:5433:5432"
     healthcheck:
       test: [
         "CMD-SHELL",

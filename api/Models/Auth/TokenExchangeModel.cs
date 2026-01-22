@@ -2,13 +2,13 @@
 
 namespace Api.Models.Auth;
 
-public class AuthLoginModel
+public class TokenExchangeModel
 {
     [Required(ErrorMessage = "Email is required.")]
     [DataType(DataType.EmailAddress)]
     public string Email { get; set; } = string.Empty;
     
-    [Required(ErrorMessage = "Password is required.")]
+    [Required(ErrorMessage = "RefreshToken is required.")]
     [DataType(DataType.Password)]
-    public string Password { get; set; } = string.Empty;
+    public string RefreshToken { get; set; } = string.Empty;
 }

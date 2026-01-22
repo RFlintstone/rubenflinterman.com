@@ -1,0 +1,21 @@
+@URL=http://localhost:8080
+#@URL=https://api.rubenflinterman.com
+
+### Register token with email and password
+POST {{URL}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "Email": "admin@admin.com",
+  "Password": "admin"
+}
+
+> {% client.global.set("token", response.body.accessToken) %}
+
+### Get user details
+GET {{URL}}/api/v1/user/
+Authorization: Bearer {{token}}
+
+### Check if the user is an admin
+GET {{URL}}/api/v1/user/admin
+Authorization: Bearer {{token}}

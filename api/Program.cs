@@ -55,7 +55,9 @@ public class Program
         if (string.IsNullOrEmpty(keyPath))
         {
             var dockerKeysPath = "/app/keys";
-            keyPath = Directory.Exists(dockerKeysPath) ? dockerKeysPath : Path.Combine(Directory.GetCurrentDirectory(), "keys");
+            keyPath = Directory.Exists(dockerKeysPath)
+                ? dockerKeysPath
+                : Path.Combine(Directory.GetCurrentDirectory(), "keys");
         }
 
         Directory.CreateDirectory(keyPath);
@@ -63,11 +65,12 @@ public class Program
         // Prefer certificate from a secure store / secret manager. Password should be provided via config
         var certificatePath = configuration["Certificate:Path"];
         // Prefer configuration value populated from `*_FILE` mapping; fall back to legacy env var if present
-        var certificatePassword = configuration["Certificate:Password"] ?? Environment.GetEnvironmentVariable("CERT_PASSWORD");
+        var certificatePassword =
+            configuration["Certificate:Password"] ?? Environment.GetEnvironmentVariable("CERT_PASSWORD");
 
         // Normalize and sanitize keypath
         var sanitizedKeyPath = Path.GetFullPath(keyPath);
-        
+
         // Restrict to a base directory (HIGHLY recommended)
         var allowedBasePathKeys = Path.GetFullPath("/app/keys");
 
@@ -75,19 +78,21 @@ public class Program
         {
             throw new InvalidOperationException("Invalid DataProtection key path.");
         }
-        
+
         // Ensure directory exists
         Directory.CreateDirectory(sanitizedKeyPath);
-        
+
         var dpBuilder = builder.Services.AddDataProtection()
             .PersistKeysToFileSystem(new DirectoryInfo(sanitizedKeyPath))
             .SetApplicationName(configuration["DataProtection:AppName"] ?? "Api-Prod");
-        
-        if (!string.IsNullOrEmpty(certificatePath) && File.Exists(certificatePath) && !string.IsNullOrEmpty(certificatePassword))
+
+        if (!string.IsNullOrEmpty(certificatePath) && File.Exists(certificatePath) &&
+            !string.IsNullOrEmpty(certificatePassword))
         {
             try
             {
-                var cert = new X509Certificate2(certificatePath, certificatePassword, X509KeyStorageFlags.EphemeralKeySet);
+                var cert = new X509Certificate2(certificatePath, certificatePassword,
+                    X509KeyStorageFlags.EphemeralKeySet);
                 if (cert.HasPrivateKey)
                 {
                     dpBuilder.ProtectKeysWithCertificate(cert);
@@ -107,7 +112,8 @@ public class Program
             else
             {
                 var logger = LoggerFactory.Create(cfg => cfg.AddConsole()).CreateLogger(typeof(Program));
-                logger.LogWarning("No certificate configured for key protection and not running on Windows; ensure key storage is protected and persistent (Redis/Azure Blob recommended).");
+                logger.LogWarning(
+                    "No certificate configured for key protection and not running on Windows; ensure key storage is protected and persistent (Redis/Azure Blob recommended).");
             }
         }
     }
@@ -116,12 +122,13 @@ public class Program
     {
         // Prefer secrets from configuration which may have been populated by the *_FILE mapping
         var jwtSecretKey = configuration["JwtSettings:SecretKey"] ?? Environment.GetEnvironmentVariable("JWT_SECRET");
-        var jwtIssuer = configuration["JwtSettings:Issuer"];
-        var jwtAudience = configuration["JwtSettings:Audience"];
+        var jwtIssuer = configuration["JwtSettings:Issuer"] ?? Environment.GetEnvironmentVariable("JWT_ISSUER");
+        var jwtAudience = configuration["JwtSettings:Audience"] ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE");
 
         if (string.IsNullOrEmpty(jwtSecretKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
         {
-            throw new InvalidOperationException("JWT configuration incomplete. Use environment/secret store to provide secrets.");
+            throw new InvalidOperationException(
+                "JWT configuration incomplete. Use environment/secret store to provide secrets.");
         }
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -143,78 +150,58 @@ public class Program
                 };
             });
     }
-
-    public static void Main(string[] args)
+    
+    public static async Task Main(string[] args) // Changed to async Task
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Load file-backed env vars (X_FILE -> configuration key) early so all reads use them
         LoadFileEnvironmentVariablesIntoConfiguration(builder.Configuration);
         var configuration = builder.Configuration;
 
-        // runtime flags
-        var isInDocker = configuration.GetValue<bool>("RUNNING_IN_DOCKER");
-        var exposeAllInterfaces = configuration.GetValue<bool>("ExposeAllInterfaces", false);
-
-        // Logging - avoid logging secrets
-        builder.Logging.ClearProviders();
-        builder.Logging.AddConsole();
-        builder.Logging.AddDebug();
-
-        // Kestrel bindings controlled by config. Default to loopback for safety.
-        builder.WebHost.ConfigureKestrel(serverOptions =>
-        {
-            var ports = configuration.GetSection("Kestrel:Ports").Get<int[]>() ?? new[] { 8080 };
-            foreach (var port in ports)
-            {
-                if (exposeAllInterfaces || isInDocker)
-                {
-                    serverOptions.ListenAnyIP(port);
-                }
-                else
-                {
-                    serverOptions.Listen(IPAddress.Loopback, port);
-                }
-            }
-        });
-
-        // Services
-        builder.Services.AddAntiforgery();
+        // --- SERVICES ---
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+        builder.Services.AddHttpClient();
 
-        // Register application services
+        // Register services
+        builder.Services.AddScoped<AvatarService>();
         builder.Services.AddScoped<EncryptionService>();
-        builder.Services.AddScoped<AuthController>();
         builder.Services.AddScoped<UserInfoService>();
 
-        // Data protection - safer defaults and configurable key path
-        ConfigureCertificateProtection(builder, configuration);
+        // DB Context
+        var conn = configuration.GetConnectionString("Postgres");
+        builder.Services.AddDbContext<DatabaseContext>(options =>
+            options.UseNpgsql(conn)
+                .ConfigureWarnings(w =>
+                    w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
+        );
 
-        // JWT auth
+        ConfigureCertificateProtection(builder, configuration);
         ConfigureJwtAuthentication(builder, configuration);
 
-        // CORS - whitelist origins via config
-        var allowedOrigins = configuration["AllowedOrigins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
-        builder.Services.AddCors(opts =>
+        // --- BUILD ---
+        var app = builder.Build();
+
+        // --- DATABASE INITIALIZATION ---
+        // This is where we run migrations and the seeding logic safely
+        if (configuration.GetValue<bool>("RUNNING_IN_DOCKER") || app.Environment.IsDevelopment())
         {
-            opts.AddPolicy("Strict", policy =>
-            {
-                if (allowedOrigins.Length > 0)
-                    policy.WithOrigins(allowedOrigins).AllowCredentials().AllowAnyHeader().WithMethods("GET", "POST", "PUT", "DELETE");
-                else
-                    policy.DisallowCredentials();
-            });
-        });
+            // Use the seeder we created in the previous step
+            await DbInitializer.InitializeAsync(app.Services);
+        }
 
-        // DB context - connection string must come from secure config
-        var conn = configuration.GetConnectionString("Postgres");
-        if (string.IsNullOrEmpty(conn)) throw new InvalidOperationException("Postgres connection string not found");
+        // --- PIPELINE ---
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
 
-        builder.Services.AddDbContext<DatabaseContext>(options => options.UseNpgsql(conn));
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.MapControllers();
 
-        // Enforce security headers at startup via Startup.Start or middleware later.
-        Startup.Start(builder);
+        await app.RunAsync();
     }
 }
