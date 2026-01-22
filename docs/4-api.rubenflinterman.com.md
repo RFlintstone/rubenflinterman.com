@@ -79,8 +79,8 @@ Create a folder named `secrets` in the root directory. The following files are r
 
 ```
 # Kubernetes secrets generation:
-kubectl create secret generic api-secrets \
-  --namespace api-rubenflinterman-com \
+kubectl create secret generic SECRET_NAME \
+  --namespace API_NAMESPACE \
   --from-file=certificate.pfx=./secrets/certificate.pfx \
   --from-file=cert_password=./secrets/cert_password \
   --from-file=encryption_key=./secrets/encryption_key \
