@@ -23,7 +23,10 @@ public static class DbInitializer
 
         // Find users with default properties
         var usersToUpdate = await context.Users
-            .Where(u => u.Password == "" || u.Avatar == "default")
+            .Where(u => 
+                u.Password == "" || 
+                u.Avatar == "default"
+                )
             .ToListAsync();
 
         // Update each user with default properties
