@@ -14,12 +14,13 @@ A C# API project designed to support the functionality of the website:
 
 - Project Structure: Organized structure including Controllers, Models, Services, and Datastore.
 - Docker Setup: Using Docker for easy deployment, with a focus on database and Adminer integration.
-- JWT Support: Implementing JWT for secure access and token management.
+- JWT Support + Permissions: Implementing JWT for secure access and token management.
+- File Storage: Using Postgres and Base64/bytes I'd like to create a 'vault' system where I can SAFELY save, update and request files such as images, PDFs or executables. Using JWT+Permissions this can be very powerfull.
 
 ## Blog (v0) - blog.rubenflinterman.com [![Publish Blog](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/publish-blog.yml/badge.svg)](https://github.com/RFlintstone/rubenflinterman.com/actions/workflows/publish-blog.yml)
 
 A Jekyll-based blog which I'd like to replace with a self-created blog system in v1.
-The new version should load blog posts from a database however the included text editor should support full markdown.
+The new version should load blog posts from a database and the included text editor should support full markdown.
 
 ## Todo list
 
@@ -41,14 +42,22 @@ The new version should load blog posts from a database however the included text
 |                                          | _- Create Models_                                               | ✅          |
 |                                          | _- Create Services_                                             | ✅          |
 |                                          | _- Create Datastore_                                            | ✅          |
-|                                          | Add docker-compose                                              | ⏳          |
+|                                          | Add docker-compose                                              | ✅          |
 |                                          | _- Get DB working (locally)_                                    | ✅          |
-|                                          | _- Get DB working (Kubernetes)_                                 | ⏳          |
+|                                          | _- Get DB working (Kubernetes)_                                 | ✅          |
 |                                          | _- Get Adminer working (with the DB)__                          | ✅          |
-|                                          | Add JWT support                                                 | ✅          |
+|                                          | Add JWT support                                                 | ⏳          |
 |                                          | _- Link Accesstokens with DB by 'SELECT'_                       | ✅          |
 |                                          | _- Use a remote server (ex: Firebase/AWS) for token validation_ | ⏳          |
-| **Blog (v0) - blog.rubenflinterman.com** | Setup Jekyll Blog                                               | ✅          |
+|                                          | Fetch user information                                          | ⏳          |
+|                                          | _- Basic user info (id, username, email)_                       | ✅          |
+|                                          | _- User Bio in Markdown_                                        | ⏳          |
+|                                          | _- Images such as an Avatar_                                    | ✅          |
+|                                          | Update user information                                         | ⏳          |
+|                                          | _- Basic user info (id, username, email)_                       | ⏳          |
+|                                          | _- User Bio in Markdown_                                        | ⏳          |
+|                                          | _- Images such as an Avatar_                                    | ⏳          |
+| **[Depricated] Blog (v0) - blog.rubenflinterman.com** | Setup Jekyll Blog                                  | ✅          |
 |                                          | _- Add Jekyll_                                                  | ✅          |
 |                                          | _- Choose Jekyll theme_                                         | ✅          |
 |                                          | _- Customize Jekyll theme_                                      | ✅          |
@@ -62,5 +71,6 @@ The new version should load blog posts from a database however the included text
 | ❌          | To be completed |
 
 </details>
+
 
 
