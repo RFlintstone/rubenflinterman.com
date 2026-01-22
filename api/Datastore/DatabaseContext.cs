@@ -36,11 +36,11 @@ public class DatabaseContext : DbContext
             Password = Convert.ToBase64String(_encryptionService.Encrypt("admin", adminId)),
             PhoneNumber = "",
             LastLogin = new DateTime(2026, 1, 1).ToUniversalTime(),
-            Token = "admin_token",
-            TokenCreated = new DateTime(2026, 1, 1).ToUniversalTime(),
-            TokenExpiry = new DateTime(2026, 1, 2).ToUniversalTime(),
+            RefreshToken = "admin_token",
+            RefreshTokenCreated = new DateTime(2026, 1, 1).ToUniversalTime(),
+            RefreshTokenExpiry = new DateTime(2026, 1, 2).ToUniversalTime(),
             Roles = ["User", "Admin"],
-            Avatar = downloadDefaultAvatar(adminUsername).Result
+            Avatar = DownloadDefaultAvatar(adminUsername).Result
         });
 
         modelBuilder.Entity<UserInfoModel>().HasData(new UserInfoModel
@@ -51,15 +51,15 @@ public class DatabaseContext : DbContext
             Password = Convert.ToBase64String(_encryptionService.Encrypt("user", userId)),
             PhoneNumber = "",
             LastLogin = new DateTime(2026, 1, 1).ToUniversalTime(),
-            Token = "user_token",
-            TokenCreated = new DateTime(2026, 1, 1).ToUniversalTime(),
-            TokenExpiry = new DateTime(2026, 1, 2).ToUniversalTime(),
+            RefreshToken = "user_token",
+            RefreshTokenCreated = new DateTime(2026, 1, 1).ToUniversalTime(),
+            RefreshTokenExpiry = new DateTime(2026, 1, 2).ToUniversalTime(),
             Roles = ["User"],
-            Avatar = downloadDefaultAvatar(userUsername).Result
+            Avatar = DownloadDefaultAvatar(userUsername).Result
         });
     }
 
-    protected async Task<string> downloadDefaultAvatar(string username)
+    protected async Task<string> DownloadDefaultAvatar(string username)
     {
         // Image properties
         var imageType = "letter"; // 'letter' or 'shape'

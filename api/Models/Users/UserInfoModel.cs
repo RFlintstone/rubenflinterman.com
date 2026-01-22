@@ -2,18 +2,20 @@
 
 public class UserInfoModel
 {
-    // User info
+    // Basic Profile Info
     public Guid Id { get; set; } = Guid.NewGuid();
-    public string Username { get; set; } = "Unknown User";
-    public string Email { get; set; } = "Unknown Email";
-    public string Password { get; set; } = "Unknown Password";
-    public string PhoneNumber { get; set; } = "Unknown Phone";
+    public string Username { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string PhoneNumber { get; set; } = string.Empty;
     public string[] Roles { get; set; } = { "User" };
-    public string Avatar { get; set; } = "Unknown Avatar";
+    public string Avatar { get; set; } = "default";
 
-    // User login properties
+    // Authentication State
     public DateTime LastLogin { get; set; } = DateTime.UtcNow;
-    public string Token { get; set; } = "Unknown Token";
-    public DateTime TokenCreated { get; set; } = DateTime.UtcNow;
-    public DateTime TokenExpiry { get; set; } = DateTime.UtcNow;
+    
+    // RENAMED: This is the 'Refresh Token' used to get new JWTs
+    public string? RefreshToken { get; set; } 
+    public DateTime RefreshTokenCreated { get; set; } = DateTime.UtcNow;
+    public DateTime RefreshTokenExpiry { get; set; }
 }

@@ -116,8 +116,8 @@ public class Program
     {
         // Prefer secrets from configuration which may have been populated by the *_FILE mapping
         var jwtSecretKey = configuration["JwtSettings:SecretKey"] ?? Environment.GetEnvironmentVariable("JWT_SECRET");
-        var jwtIssuer = configuration["JwtSettings:Issuer"];
-        var jwtAudience = configuration["JwtSettings:Audience"];
+        var jwtIssuer = configuration["JwtSettings:Issuer"] ?? Environment.GetEnvironmentVariable("JWT_ISSUER");
+        var jwtAudience = configuration["JwtSettings:Audience"] ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE");
 
         if (string.IsNullOrEmpty(jwtSecretKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
         {
@@ -186,7 +186,7 @@ public class Program
 
         // Register application services
         builder.Services.AddScoped<EncryptionService>();
-        builder.Services.AddScoped<AuthController>();
+        builder.Services.AddScoped<TokenController>();
         builder.Services.AddScoped<UserInfoService>();
 
         // Data protection - safer defaults and configurable key path
