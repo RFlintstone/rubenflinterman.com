@@ -24,15 +24,15 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<UserInfoModel>().HasKey(x => x.Id);
 
         // Seed initial admin user
-        var adminId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-        modelBuilder.Entity<UserInfoModel>().HasData(new UserInfoModel
-        {
-            Id = adminId,
-            Username = "Admin",
-            Email = "admin@admin.com",
-            Password = "SEED_PASSWORD", // We will rotate this in the Initializer
-            Avatar = "default",
-            Roles = ["User", "Admin"]
-        });
+        // var adminId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        // modelBuilder.Entity<UserInfoModel>().HasData(new UserInfoModel
+        // {
+        //     Id = adminId,
+        //     Username = "Admin",
+        //     Email = "admin@admin.com",
+        //     Password = "",
+        //     Avatar = "default",
+        //     Roles = ["User", "Admin"]
+        // });
     }
 }
