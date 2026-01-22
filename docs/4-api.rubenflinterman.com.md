@@ -76,6 +76,7 @@ Create a folder named `secrets` in the root directory. The following files are r
 ### Production Deployment (Kubernetes)
 1. **Prepare Secrets**: Ensure all files in the `./secrets` folder exist by running 'secret_gen.sh'
 2. Make the secrets available in the Kubernetes cluster by running the following command from within the project folder:
+
 ```
 # Kubernetes secrets generation:
 kubectl create secret generic api-secrets \
@@ -88,6 +89,7 @@ kubectl create secret generic api-secrets \
   --from-file=jwt_audience=./secrets/jwt_audience \
   --from-file=pg_connection_string=./secrets/pg_connection_string
 ```
+
 3. **Hoop.dev**: Install and configure [hoop.dev](https://hoop.dev/docs/getting-started/cli) according to the documentation.
    - Ensure the `hoop.dev` environment is active to securely manage the production database.
 4. **Kubernetes Deployment**: Create and configure your deployment by using:
