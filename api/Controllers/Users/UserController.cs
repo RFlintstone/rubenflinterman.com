@@ -9,14 +9,18 @@ public class UserController(UserInfoService userInfoService) : ControllerBase
 {
     [HttpGet("")] 
     [Authorize]
-    public IActionResult Get()
+    public async Task<IActionResult> Get() // Added async Task
     {
+        // Populate the service state from the JWT Claims
         userInfoService.SetId(User);
         userInfoService.SetUsername(User);
-        userInfoService.SetEmail(User);
+        await userInfoService.SetEmail(User);
         userInfoService.SetRoles(User);
-        userInfoService.SetAvatarAsync(User).GetAwaiter().GetResult();
+        
+        // Use await instead of .GetAwaiter().GetResult()
+        await userInfoService.SetAvatarAsync(User);
 
+        // Return user information
         return Ok(new {
             Id = userInfoService.GetId(),
             Username = userInfoService.GetUsername(),

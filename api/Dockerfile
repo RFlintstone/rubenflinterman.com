@@ -12,7 +12,8 @@ WORKDIR /app
 RUN apk add --no-cache \
     openssl \
     ca-certificates \
-    libressl
+    libressl \
+    krb5-libs
 
 # Create non-root user and directories
 RUN addgroup -g 1000 appgroup \

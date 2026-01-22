@@ -1,0 +1,290 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Auth Tester</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .json-viewer {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status-dot {
+            height: 10px;
+            width: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-4 md:p-8">
+
+<div class="max-w-6xl mx-auto">
+    <header class="mb-8 flex justify-between items-center border-b border-gray-700 pb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-blue-400">API Testing Dashboard</h1>
+            <p class="text-gray-400">Target: <span id="targetUrl">http://localhost:8080</span></p>
+        </div>
+        <div class="text-right">
+            <div class="flex items-center justify-end gap-2">
+                <span id="authStatusText">Logged Out</span>
+                <span id="authStatusDot" class="status-dot bg-red-500"></span>
+            </div>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Left Column: Actions -->
+        <div class="space-y-6">
+            <!-- Login Card -->
+            <section class="bg-gray-800 p-6 rounded-xl shadow-xl border border-gray-700">
+                <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">1. Authentication</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-400">Email</label>
+                        <input type="text" id="email" value="admin@admin.com" class="w-full bg-gray-700 border-none rounded p-2 mt-1 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400">Password</label>
+                        <input type="password" id="password" value="admin" class="w-full bg-gray-700 border-none rounded p-2 mt-1 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="handleLogin()" class="flex-1 bg-blue-600 hover:bg-blue-700 py-2 rounded font-bold transition">Login</button>
+                        <button onclick="handleRegister()" class="flex-1 bg-gray-600 hover:bg-gray-700 py-2 rounded font-bold transition">Register</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Token Management -->
+            <section class="bg-gray-800 p-6 rounded-xl shadow-xl border border-gray-700">
+                <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">2. Token Actions</h2>
+                <div class="grid grid-cols-1 gap-2">
+                    <button onclick="getUserInfo()" class="bg-emerald-600 hover:bg-emerald-700 py-2 rounded font-bold transition">Get My Info</button>
+                    <button onclick="checkAdmin()" class="bg-purple-600 hover:bg-purple-700 py-2 rounded font-bold transition">Check Admin Access</button>
+                    <button onclick="refreshToken()" class="bg-amber-600 hover:bg-amber-700 py-2 rounded font-bold transition text-gray-900">Refresh Token</button>
+                    <button onclick="logout()" class="bg-red-600 hover:bg-red-700 py-2 rounded font-bold transition">Logout</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- Middle Column: Profile & State -->
+        <div class="space-y-6">
+            <section id="profileSection" class="bg-gray-800 p-6 rounded-xl shadow-xl border border-gray-700 hidden">
+                <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">User Profile</h2>
+                <div class="flex flex-col items-center text-center">
+                    <div id="avatarContainer" class="mb-4">
+                        <div class="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center text-3xl font-bold border-4 border-blue-500 overflow-hidden">
+                            <img id="userAvatar" src="" alt="Avatar" class="hidden w-full h-full object-cover">
+                            <span id="avatarPlaceholder">?</span>
+                        </div>
+                    </div>
+                    <h3 id="profileName" class="text-2xl font-bold">...</h3>
+                    <p id="profileEmail" class="text-gray-400">...</p>
+                    <div id="roleBadges" class="flex gap-2 mt-4"></div>
+                </div>
+            </section>
+
+            <section class="bg-gray-800 p-6 rounded-xl shadow-xl border border-gray-700">
+                <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">Stored Tokens</h2>
+                <div class="space-y-4">
+                    <div class="overflow-hidden">
+                        <label class="text-xs text-gray-500 uppercase">Access Token</label>
+                        <div id="accessTokenDisplay" class="text-xs font-mono bg-black p-2 rounded truncate text-blue-300">None</div>
+                    </div>
+                    <div class="overflow-hidden">
+                        <label class="text-xs text-gray-500 uppercase">Refresh Token</label>
+                        <div id="refreshTokenDisplay" class="text-xs font-mono bg-black p-2 rounded truncate text-amber-300">None</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Right Column: Raw Logs -->
+        <div class="lg:col-span-1">
+            <section class="bg-gray-800 p-6 rounded-xl shadow-xl border border-gray-700 h-full flex flex-col">
+                <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                    <h2 class="text-xl font-semibold">Response Logs</h2>
+                    <button onclick="clearLogs()" class="text-xs text-gray-400 hover:text-white uppercase">Clear</button>
+                </div>
+                <div id="logs" class="space-y-4 flex-1 overflow-y-auto">
+                    <p class="text-gray-500 italic">No activity yet...</p>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_URL = "http://localhost:8080";
+    let accessToken = null;
+    let currentRefreshToken = null;
+
+    function updateStatus(isLoggedIn) {
+        const text = document.getElementById('authStatusText');
+        const dot = document.getElementById('authStatusDot');
+        const profile = document.getElementById('profileSection');
+
+        if (isLoggedIn) {
+            text.innerText = "Authenticated";
+            dot.className = "status-dot bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)]";
+            profile.classList.remove('hidden');
+        } else {
+            text.innerText = "Logged Out";
+            dot.className = "status-dot bg-red-500";
+            profile.classList.add('hidden');
+            accessToken = null;
+            currentRefreshToken = null;
+            updateTokenDisplays();
+        }
+    }
+
+    function updateTokenDisplays() {
+        document.getElementById('accessTokenDisplay').innerText = accessToken || 'None';
+        document.getElementById('refreshTokenDisplay').innerText = currentRefreshToken || 'None';
+    }
+
+    function logResponse(endpoint, data, status) {
+        const logs = document.getElementById('logs');
+        if (logs.querySelector('p.italic')) logs.innerHTML = '';
+
+        const logEntry = document.createElement('div');
+        logEntry.className = "mb-4 animate-in fade-in duration-300";
+
+        const isError = status >= 400;
+        const statusColor = isError ? 'text-red-400' : 'text-green-400';
+
+        logEntry.innerHTML = `
+                <div class="flex justify-between text-xs mb-1">
+                    <span class="font-bold text-blue-400">${endpoint}</span>
+                    <span class="${statusColor}">Status: ${status}</span>
+                </div>
+                <div class="json-viewer">${JSON.stringify(data, null, 2)}</div>
+            `;
+        logs.prepend(logEntry);
+    }
+
+    async function apiRequest(endpoint, method = 'GET', body = null) {
+        const headers = { 'Content-Type': 'application/json' };
+
+        // Explicitly attach Bearer token if it exists in the app state
+        if (accessToken) {
+            headers['Authorization'] = `Bearer ${accessToken}`;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}${endpoint}`, {
+                method,
+                headers,
+                body: body ? JSON.stringify(body) : null
+            });
+
+            let data = {};
+            const text = await response.text();
+            try { data = JSON.parse(text); } catch(e) { data = { message: text }; }
+
+            logResponse(endpoint, data, response.status);
+            return { data, status: response.status };
+        } catch (error) {
+            logResponse(endpoint, { error: error.message }, 0);
+            return { data: null, status: 0 };
+        }
+    }
+
+    async function handleLogin() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        const res = await apiRequest('/api/v1/token/login', 'POST', { email, password });
+
+        if (res.status === 200) {
+            accessToken = res.data.accessToken;
+            currentRefreshToken = res.data.refreshToken;
+            updateStatus(true);
+            updateTokenDisplays();
+            getUserInfo();
+        }
+    }
+
+    async function handleRegister() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const username = email.split('@')[0];
+
+        await apiRequest('/api/v1/auth/register', 'POST', {
+            username: username,
+            email: email,
+            password: password
+        });
+    }
+
+    async function getUserInfo() {
+        // This now correctly passes the Bearer token via the apiRequest helper
+        const res = await apiRequest('/api/v1/user/', 'GET');
+        if (res.status === 200) {
+            const user = res.data;
+            document.getElementById('profileName').innerText = user.username || 'N/A';
+            document.getElementById('profileEmail').innerText = user.email || 'N/A';
+
+            // Handle Avatar
+            const img = document.getElementById('userAvatar');
+            const placeholder = document.getElementById('avatarPlaceholder');
+            if (user.avatar && user.avatar !== 'default' && user.avatar !== 'none') {
+                img.src = user.avatar.startsWith('data:') ? user.avatar : `data:image/png;base64,${user.avatar}`;
+                img.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+            } else {
+                img.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+                placeholder.innerText = user.username ? user.username[0].toUpperCase() : '?';
+            }
+
+            // Handle Roles
+            const rolesDiv = document.getElementById('roleBadges');
+            rolesDiv.innerHTML = '';
+            if (user.roles) {
+                user.roles.forEach(role => {
+                    const span = document.createElement('span');
+                    span.className = "px-2 py-1 bg-blue-900 text-blue-200 text-xs rounded-full border border-blue-700";
+                    span.innerText = role;
+                    rolesDiv.appendChild(span);
+                });
+            }
+        }
+    }
+
+    async function checkAdmin() {
+        await apiRequest('/api/v1/user/admin', 'GET');
+    }
+
+    async function refreshToken() {
+        if (!currentRefreshToken) return;
+        const res = await apiRequest('/api/v1/token/refresh', 'POST', { refreshToken: currentRefreshToken });
+        if (res.status === 200) {
+            accessToken = res.data.accessToken;
+            currentRefreshToken = res.data.refreshToken;
+            updateTokenDisplays();
+        }
+    }
+
+    async function logout() {
+        if (currentRefreshToken) {
+            await apiRequest('/api/v1/token/logout', 'POST', { refreshToken: currentRefreshToken });
+        }
+        updateStatus(false);
+    }
+
+    function clearLogs() {
+        document.getElementById('logs').innerHTML = '<p class="text-gray-500 italic">No activity yet...</p>';
+    }
+</script>
+</body>
+</html>

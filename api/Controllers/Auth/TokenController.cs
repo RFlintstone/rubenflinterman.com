@@ -1,4 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Cryptography;
 using Api.Datastore;
 using Api.Models.Auth;
 using Api.Services.Auth;
@@ -78,7 +79,9 @@ public class TokenController : ControllerBase
         var jwtString = new JwtSecurityTokenHandler().WriteToken(jwt);
 
         // Issue a new Refresh Token so the old one can't be reused
-        user.RefreshToken = Guid.NewGuid().ToString(); 
+        var bytes = new byte[128];
+        RandomNumberGenerator.Fill(bytes);
+        user.RefreshToken = Convert.ToBase64String(bytes);
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
     
         // Save changes to the database
@@ -106,7 +109,9 @@ public class TokenController : ControllerBase
         }
 
         // 3. Create a new Refresh Token
-        user.RefreshToken = Guid.NewGuid().ToString();
+        var bytes = new byte[128];
+        RandomNumberGenerator.Fill(bytes);
+        user.RefreshToken = Convert.ToBase64String(bytes);
         user.RefreshTokenCreated = DateTime.UtcNow;
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7); // Long-lived
         user.LastLogin = DateTime.UtcNow;
@@ -136,6 +141,6 @@ public class TokenController : ControllerBase
             user.RefreshTokenExpiry = DateTime.MinValue;
             await _dbContext.SaveChangesAsync();
         }
-        return Ok();
+        return Ok("Logged out successfully.");
     }
 }

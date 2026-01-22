@@ -1,16 +1,20 @@
 ﻿using System.Security.Claims;
 using System.Text;
+using Api.Datastore;
 using Api.Models.Users;
+using Microsoft.EntityFrameworkCore;
 
 namespace Api.Services.Users;
 
 public class UserInfoService : IUserInfoService
 {
-    private readonly UserInfoModel _userInfo;
+    private readonly UserInfoModel _userInfo = new();
+    private readonly DatabaseContext _dbContext;
 
-    public UserInfoService()
+    public UserInfoService(DatabaseContext dbContext)
     {
-        _userInfo = new UserInfoModel(); // Initialize the model
+        _dbContext = dbContext;
+        // _userInfo = new UserInfoModel(); // Initialize the model
     }
 
     //========================================
@@ -20,7 +24,7 @@ public class UserInfoService : IUserInfoService
     public string GetUsername() => _userInfo.Username;
     public string GetEmail() => _userInfo.Email;
     public string GetPassword() => _userInfo.Password;
-    public string GetToken() => _userInfo.Token;
+    public string GetToken() => _userInfo.RefreshToken;
     public string[] GetRoles() => _userInfo.Roles;
     public string GetAvatar() => _userInfo.Avatar;
 
@@ -68,22 +72,27 @@ public class UserInfoService : IUserInfoService
         return _userInfo.Username != "default";
     }
 
-    public bool SetEmail(ClaimsPrincipal? claimsPrincipal)
+    public async Task<bool> SetEmail(ClaimsPrincipal? claimsPrincipal)
     {
-        // Set claims
-        var claims = claimsPrincipal?.Claims;
+        // 1. Get the ID from the JWT
+        var idValue = claimsPrincipal?.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(idValue, out var userId)) return false;
 
-        // Check if we have any claims on the user
-        if (claims is null) return false;
+        // 2. Look up the user in the DB (only fetch the Avatar column for speed)
+        var email = await _dbContext.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => u.Email)
+            .FirstOrDefaultAsync();
 
-        // Select the first available type name of our claim, this is the username
-        var user = claims
-            .Select(c => new { c.Type, c.Value })
-            .FirstOrDefault(c => c.Type == ClaimTypes.Email);
-        
-        // If we have a username set it and return true
-        _userInfo.Email = user?.Value ?? "default";
-        return _userInfo.Email != "default";
+        if (email is not null)
+        {
+            _userInfo.Email = email;
+            return true;
+        }
+
+        _userInfo.Email = "default";
+        return false;
     }
 
     public bool SetPassword(string password)
@@ -94,8 +103,8 @@ public class UserInfoService : IUserInfoService
 
     public bool SetToken(string token)
     {
-        _userInfo.Token = token;
-        return _userInfo.Token != "default";
+        _userInfo.RefreshToken = token;
+        return _userInfo.RefreshToken != "default";
     }
 
     public bool SetRoles(ClaimsPrincipal? claimsPrincipal)
@@ -121,34 +130,24 @@ public class UserInfoService : IUserInfoService
 
     public async Task<bool> SetAvatarAsync(ClaimsPrincipal? claimsPrincipal)
     {
-        // Get username from claims
-        var user = claimsPrincipal?.Claims
-            .FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+        // 1. Get the ID from the JWT
+        var idValue = claimsPrincipal?.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(idValue, out var userId)) return false;
 
-        // Check if we have any claims on the user
-        if (string.IsNullOrEmpty(user)) return false;
+        // 2. Look up the user in the DB (only fetch the Avatar column for speed)
+        var avatar = await _dbContext.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => u.Avatar)
+            .FirstOrDefaultAsync();
 
-        // Image properties
-        var imageType = "letter"; // 'letter' or 'shape'
-        var imageSize = 128;      // min 16, max 360
-        var base64Identifier = Convert.ToBase64String(Encoding.UTF8.GetBytes(user));
-
-        // Build URL
-        var url = $"https://avi.avris.it/{imageType}-{imageSize}/{base64Identifier}.png";
-        
-        using var httpClient = new HttpClient();
-        try
+        if (avatar is not null)
         {
-            // Download image bytes and store as Base64 string
-            var bytes = await httpClient.GetByteArrayAsync(url);
-            _userInfo.Avatar = bytes.Length > 0 ? Convert.ToBase64String(bytes) : "default";
-            return true; // succeeded
+            _userInfo.Avatar = avatar;
+            return true;
         }
-        catch
-        {
-            // Could not fetch avatar
-            _userInfo.Avatar = "default";
-            return false;
-        }
+
+        _userInfo.Avatar = "default";
+        return false;
     }
 }
