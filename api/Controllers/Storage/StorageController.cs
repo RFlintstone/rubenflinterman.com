@@ -137,6 +137,13 @@ public class StorageController : ControllerBase
         }
     }
 
+    [HttpDelete("delete/{id}")]
+    public async Task<IActionResult> DeleteFile(Guid id)
+    {
+        // TODO: Implement file deletion endpoint. Should remove both metadata and large object.
+        return Ok("Not implemented yet.");
+    }
+
     private async Task UpdateDownloadStats(Guid id)
     {
         try
