@@ -43,3 +43,9 @@ nb-configuration.xml
 /.quarkus/cli/plugins/
 # TLS Certificates
 .certs/
+
+# Ignore the entire directory and all content
+**/src/main/resources/META-INF/resources/
+**/src/main/resources/META-INF/resources/static/js/*.js
+**/src/main/resources/META-INF/resources/static/js/*.map
+**/src/main/resources/META-INF/resources/static/js/*.txt
