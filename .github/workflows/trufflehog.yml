@@ -14,7 +14,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # For Pull Requests: Scan the changes between base and head
+      # For Pull Requests: Scans the diff between the source and target
       - name: TruffleHog OSS (PR)
         if: github.event_name == 'pull_request'
         uses: trufflesecurity/trufflehog@v3.92.5
@@ -24,11 +24,11 @@ jobs:
           head: ${{ github.event.pull_request.head.sha }}
           extra_args: --only-verified
 
-      # For Pushes: Scan the current branch
+      # For Pushes: Scans the pushed commits on the branch
       - name: TruffleHog OSS (Push)
         if: github.event_name == 'push'
         uses: trufflesecurity/trufflehog@v3.92.5
         with:
           path: ./
-          # No base/head here; it will scan the pushed commits
-          extra_args: --only-verified --no-update
+          branch: ${{ github.ref_name }}
+          extra_args: --only-verified
