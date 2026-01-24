@@ -11,6 +11,7 @@ using Api.Services.Auth;
 using Api.Services.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
@@ -29,6 +30,7 @@ public class Program
             if (!name.EndsWith("_FILE", StringComparison.Ordinal)) continue;
 
             var path = entry.Value as string;
+            if (string.IsNullOrEmpty(path)) continue;
             if (string.IsNullOrEmpty(path)) continue;
 
             try
@@ -186,6 +188,17 @@ public class Program
                 .ConfigureWarnings(w =>
                     w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
         );
+        
+        // Increase the default limits for large file uploads (e.g., 1024 MB)
+        builder.WebHost.ConfigureKestrel(options =>
+        {
+            options.Limits.MaxRequestBodySize = 1073741824;
+        });
+        builder.Services.Configure<FormOptions>(options =>
+        {
+            options.MultipartBodyLengthLimit = 1073741824;
+            options.ValueLengthLimit = int.MaxValue;
+        });
 
         ConfigureCertificateProtection(builder, configuration);
         ConfigureJwtAuthentication(builder, configuration);
