@@ -62,12 +62,6 @@ public class Program
 
         Directory.CreateDirectory(keyPath);
 
-        // Prefer certificate from a secure store / secret manager. Password should be provided via config
-        var certificatePath = configuration["Certificate:Path"];
-        // Prefer configuration value populated from `*_FILE` mapping; fall back to legacy env var if present
-        var certificatePassword =
-            configuration["Certificate:Password"] ?? Environment.GetEnvironmentVariable("CERT_PASSWORD");
-
         // Normalize and sanitize keypath
         var sanitizedKeyPath = Path.GetFullPath(keyPath);
 
@@ -86,8 +80,24 @@ public class Program
             .PersistKeysToFileSystem(new DirectoryInfo(sanitizedKeyPath))
             .SetApplicationName(configuration["DataProtection:AppName"] ?? "Api-Prod");
 
-        if (!string.IsNullOrEmpty(certificatePath) && File.Exists(certificatePath) &&
-            !string.IsNullOrEmpty(certificatePassword))
+        // Define the strictly allowed secrets directory
+        var secretsFolder = "/run/secrets/"; 
+
+        // Prefer certificate from a secure store / secret manager. Password should be provided via config
+        var certificatePath = configuration["Certificate:Path"];
+        
+        // Prefer configuration value populated from `*_FILE` mapping; fall back to legacy env var if present
+        var certificatePassword = configuration["Certificate:Password"] ?? Environment.GetEnvironmentVariable("CERT_PASSWORD");
+        
+        // Remove any path traversal and force it to be within the secrets folder
+        if (!string.IsNullOrEmpty(certificatePath))
+        {
+            // Snyk-style: strip everything but alphanumeric, underscores, and dots (for .pfx)
+            var safeFileName = Regex.Replace(Path.GetFileName(certificatePath), "[^a-zA-Z0-9._-]", "");
+            certificatePath = Path.Combine(secretsFolder, safeFileName);
+        }
+        
+        if (!string.IsNullOrEmpty(certificatePath) && File.Exists(certificatePath) && !string.IsNullOrEmpty(certificatePassword))
         {
             try
             {
@@ -184,7 +194,6 @@ public class Program
         var app = builder.Build();
 
         // --- DATABASE INITIALIZATION ---
-        // This is where we run migrations and the seeding logic safely
         if (configuration.GetValue<bool>("RUNNING_IN_DOCKER") || app.Environment.IsDevelopment())
         {
             // Use the seeder we created in the previous step
