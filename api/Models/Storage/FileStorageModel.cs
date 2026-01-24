@@ -42,11 +42,12 @@ public class FileStorageModel
     public long FileSize { get; set; }
 
     /// <summary>
-    /// The actual raw bytes. Maps to Postgres 'bytea'.
-    /// Note: PostgreSQL moves values > 2KB to 'TOAST' storage automatically to keep the main table slim.
+    /// PostgreSQL Large Object reference (OID).
+    /// The actual binary data lives in pg_largeobject.
     /// </summary>
-    [Required, Column(TypeName = "bytea")]
-    public byte[] FileData { get; set; } = Array.Empty<byte>();
+    [Required]
+    [Column(TypeName = "oid")]
+    public uint LargeObjectOid { get; set; }
 
     /// <summary>
     /// SHA-256 hash of the FileData. Used to verify file integrity and prevent 

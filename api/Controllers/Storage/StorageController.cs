@@ -30,7 +30,6 @@ public class StorageController : ControllerBase
     [HttpGet("download/{id}")]
     public async Task<IActionResult> DownloadFile(Guid id)
     {
-        // Fetch metadata ONLY. Avoid loading FileData (byte[]) into memory.
         var fileMeta = await _dbContext.FileStorage
             .Where(f => f.Id == id && !f.IsDeleted)
             .Select(f => new
@@ -39,118 +38,102 @@ public class StorageController : ControllerBase
                 f.ContentType,
                 f.IsPublic,
                 f.OwnerId,
-                f.IsExpired
+                f.IsExpired,
+                f.LargeObjectOid
             })
             .FirstOrDefaultAsync();
 
-        if (fileMeta == null) return NotFound("File not found.");
+        if (fileMeta == null) return NotFound();
         if (fileMeta.IsExpired) return StatusCode(410, "File has expired.");
 
-        // TODO: Add your Auth check here if !fileMeta.IsPublic
-
-        // Open a dedicated connection for manual streaming
         var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync();
 
-        var cmd = new NpgsqlCommand("SELECT \"FileData\" FROM file_storage WHERE \"Id\" = @id", conn);
-        cmd.Parameters.AddWithValue("id", id);
+        // IMPORTANT: keep transaction open for entire stream lifetime
+        var tx = await conn.BeginTransactionAsync();
 
-        // SequentialAccess allows us to read the blob in chunks
-        var reader = await cmd.ExecuteReaderAsync(System.Data.CommandBehavior.SequentialAccess |
-                                                  System.Data.CommandBehavior.CloseConnection);
+        var loManager = new NpgsqlLargeObjectManager(conn);
+        var loStream = loManager.OpenRead(fileMeta.LargeObjectOid);
 
-        if (!await reader.ReadAsync())
-        {
-            await conn.CloseAsync();
-            return NotFound();
-        }
-
-        // Get the raw database stream
-        var dbStream = reader.GetStream(0);
-
-        // Update download count (Fire and forget or async)
         _ = UpdateDownloadStats(id);
 
-        // FileStreamResult handles the heavy lifting of piping the DB stream to the HTTP response
-        return new FileStreamResult(dbStream, fileMeta.ContentType)
+        return new FileStreamResult(loStream, fileMeta.ContentType)
         {
             FileDownloadName = fileMeta.FileName,
-            EnableRangeProcessing = true, // Crucial for large EXEs
-            LastModified = DateTimeOffset.UtcNow
+            EnableRangeProcessing = true
         };
     }
 
     [HttpPost("upload")]
-    [RequestSizeLimit(1073741824)]
+    [RequestSizeLimit(1073741824)] // 1 GB limit
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> UploadFile()
     {
-        var file = Request.Form.Files.FirstOrDefault();
+        if (!Request.HasFormContentType) return BadRequest("Request must be multipart/form-data");
+
+        var form = await Request.ReadFormAsync();
+        var file = form.Files["file"];
 
         if (file == null || file.Length == 0)
-        {
-            return BadRequest("No file provided or file is empty.");
-        }
+            return BadRequest("No file provided.");
 
         var fileId = Guid.NewGuid();
-        using var sha256 = SHA256.Create();
-        using var fileStream = file.OpenReadStream();
-        using var cryptoStream = new CryptoStream(fileStream, sha256, CryptoStreamMode.Read);
+
+        await using var conn = new NpgsqlConnection(_connectionString);
+        await conn.OpenAsync();
+
+        await using var tx = await conn.BeginTransactionAsync();
 
         try
         {
-            using (var conn = new NpgsqlConnection(_connectionString))
-            {
-                await conn.OpenAsync();
+            var loManager = new NpgsqlLargeObjectManager(conn);
 
-                // We include all columns required by your FileStorageModel
-                // Note the use of double quotes for case-sensitive Postgres columns
-                using var cmd = new NpgsqlCommand(
-                    @"INSERT INTO file_storage 
-                (""Id"", ""FileName"", ""ContentType"", ""FileSize"", ""FileData"", ""Sha256Hash"", ""CreatedAtUtc"", ""IsPublic"", ""IsDeleted"", ""DownloadCount"") 
-                VALUES (@id, @name, @type, @size, @data, @hash, @now, @isPublic, @isDeleted, @downloadCount)", conn);
+            // 1. Create Large Object
+            uint oid = loManager.Create();
 
-                cmd.Parameters.Add(new NpgsqlParameter("id", fileId));
-                cmd.Parameters.Add(new NpgsqlParameter("name", Path.GetFileName(file.FileName)));
-                cmd.Parameters.Add(new NpgsqlParameter("type", file.ContentType ?? "application/octet-stream"));
-                cmd.Parameters.Add(new NpgsqlParameter("size", file.Length));
-                cmd.Parameters.Add(new NpgsqlParameter("now", DateTime.UtcNow));
+            // 2. Stream file → Large Object while calculating SHA-256
+            using var sha256 = SHA256.Create();
+            await using var loStream = loManager.OpenReadWrite(oid);
+            await using var cryptoStream = new CryptoStream(loStream, sha256, CryptoStreamMode.Write);
+            await using var inputStream = file.OpenReadStream();
 
-                // Map to your model defaults
-                cmd.Parameters.Add(new NpgsqlParameter("isPublic", NpgsqlDbType.Boolean) { Value = true });
-                cmd.Parameters.Add(new NpgsqlParameter("isDeleted", NpgsqlDbType.Boolean) { Value = false });
-                cmd.Parameters.Add(new NpgsqlParameter("downloadCount", NpgsqlDbType.Integer) { Value = 0 });
-                
-                // Stream the data directly to the bytea column
-                var dataParam = new NpgsqlParameter("data", NpgsqlTypes.NpgsqlDbType.Bytea) { Value = cryptoStream };
-                cmd.Parameters.Add(dataParam);
+            await inputStream.CopyToAsync(cryptoStream);
+            cryptoStream.FlushFinalBlock();
 
-                // Temporary hash string to satisfy [Required] and char(64) constraints
-                var hashParam = new NpgsqlParameter("hash", NpgsqlTypes.NpgsqlDbType.Char, 64)
-                    { Value = new string('0', 64) };
-                cmd.Parameters.Add(hashParam);
+            string hash = BitConverter.ToString(sha256.Hash!)
+                .Replace("-", "")
+                .ToLowerInvariant();
 
-                // This executes the stream transfer and calculates the hash in one pass
-                await cmd.ExecuteNonQueryAsync();
+            // 3. Insert metadata
+            await using var cmd = new NpgsqlCommand(
+                @"INSERT INTO file_storage
+              (""Id"", ""FileName"", ""ContentType"", ""FileSize"",
+               ""LargeObjectOid"", ""Sha256Hash"",
+               ""CreatedAtUtc"", ""IsPublic"", ""IsDeleted"", ""DownloadCount"")
+              VALUES
+              (@id, @name, @type, @size,
+               @oid, @hash,
+               @now, true, false, 0)",
+                conn, tx);
 
-                // 4. Finalize the Hash
-                string finalHash = BitConverter.ToString(sha256.Hash!).Replace("-", "").ToLowerInvariant();
+            cmd.Parameters.AddWithValue("id", fileId);
+            cmd.Parameters.AddWithValue("name", Path.GetFileName(file.FileName));
+            cmd.Parameters.AddWithValue("type", file.ContentType ?? "application/octet-stream");
+            cmd.Parameters.AddWithValue("size", file.Length);
+            cmd.Parameters.Add(new NpgsqlParameter("oid", NpgsqlDbType.Oid) { Value = oid });
+            cmd.Parameters.AddWithValue("hash", hash);
+            cmd.Parameters.AddWithValue("now", DateTime.UtcNow);
 
-                // 5. Update the record with the final calculated hash
-                await _dbContext.Database.ExecuteSqlRawAsync(
-                    "UPDATE file_storage SET \"Sha256Hash\" = @hash WHERE \"Id\" = @id",
-                    new NpgsqlParameter("@hash", finalHash),
-                    new NpgsqlParameter("@id", fileId)
-                );
+            await cmd.ExecuteNonQueryAsync();
+            await tx.CommitAsync();
 
-                return Ok(new { id = fileId, hash = finalHash });
-            }
+            return Ok(new { id = fileId, hash });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Upload failed for {FileName}", file.FileName);
-            // Returning the error message helps debug constraint issues
-            return StatusCode(500, $"Upload failed: {ex.Message}");
+            await tx.RollbackAsync();
+            _logger.LogError(ex, "Upload failed for {File}", file.FileName);
+            return StatusCode(500, ex.Message);
         }
     }
 

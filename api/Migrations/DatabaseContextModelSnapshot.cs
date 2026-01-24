@@ -43,10 +43,6 @@ namespace Api.Migrations
                     b.Property<DateTime?>("ExpiresAtUtc")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<byte[]>("FileData")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -60,6 +56,9 @@ namespace Api.Migrations
 
                     b.Property<bool>("IsPublic")
                         .HasColumnType("boolean");
+
+                    b.Property<uint>("LargeObjectOid")
+                        .HasColumnType("oid");
 
                     b.Property<DateTime?>("LastAccessedAtUtc")
                         .HasColumnType("timestamp with time zone");

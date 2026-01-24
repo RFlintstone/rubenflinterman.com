@@ -197,7 +197,8 @@ public class Program
         builder.Services.Configure<FormOptions>(options =>
         {
             options.MultipartBodyLengthLimit = 1073741824;
-            options.ValueLengthLimit = int.MaxValue;
+            // options.ValueLengthLimit = int.MaxValue;
+            // options.MultipartHeadersLengthLimit = int.MaxValue;
         });
 
         ConfigureCertificateProtection(builder, configuration);
