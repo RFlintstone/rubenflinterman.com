@@ -6,9 +6,10 @@ This section lists the versions of each project within the mono repo that are cu
 
 | Project   | Version | Supported          |
 | --------- | ------- | ------------------ |
-| Portfolio | 1.x.x   | :white_check_mark:  |
-| API       | 1.x.x   | :white_check_mark:  |
-| Blog      | <=1.0   | :x:                |
+| API       | 1.x.x   | :white_check_mark: |
+| Blog      | 1.x.x   | ⏳                |
+| Docs      | 1.x.x   | :white_check_mark: |
+| Blog      | < 1.0   | :x:                |
 | Portfolio | < 1.0   | :x:                |
 | API       | < 1.0   | :x:                |
 
@@ -48,3 +49,4 @@ As the sole maintainer of the mono repo, I follow these best practices to ensure
 - **Testing:** Security testing (e.g., static analysis, penetration testing) is part of the CI/CD pipeline to catch common vulnerabilities.
   
 If you have any questions regarding the security of the mono repo, feel free to contact me through the provided communication channels.  
+
