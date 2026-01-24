@@ -12,12 +12,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Essential: TruffleHog needs history to scan commits
+          fetch-depth: 0
 
-      - name: TruffleHog OSS
+      # For Pull Requests: Scan the changes between base and head
+      - name: TruffleHog OSS (PR)
+        if: github.event_name == 'pull_request'
         uses: trufflesecurity/trufflehog@v3.92.5
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
-          extra_args: --only-verified # Optional: Only fail on "live" keys
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
+          extra_args: --only-verified
+
+      # For Pushes: Scan the current branch
+      - name: TruffleHog OSS (Push)
+        if: github.event_name == 'push'
+        uses: trufflesecurity/trufflehog@v3.92.5
+        with:
+          path: ./
+          # No base/head here; it will scan the pushed commits
+          extra_args: --only-verified --no-update
