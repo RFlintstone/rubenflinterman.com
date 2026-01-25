@@ -150,7 +150,7 @@ public class UserInfoService : IUserInfoService
         }
 
         // If there's no avatar, set a default value and return false
-        _userInfo.Avatar = "default";
+        _userInfo.Avatar = string.Empty;
         return false;
     }
 }

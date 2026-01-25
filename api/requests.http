@@ -75,7 +75,11 @@ GET {{URL}}/api/v1/storage/download/{{lastFileId}}
 Authorization: Bearer {{token}}
 Range: bytes=0-1023
 
-### 9. Logout
+### 9. Delete the File
+DELETE {{URL}}/api/v1/storage/delete/{{lastFileId}}
+Authorization: Bearer {{token}}
+
+### 10. Logout
 POST {{URL}}/api/v1/token/logout
 Content-Type: application/json
 

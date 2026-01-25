@@ -9,7 +9,7 @@ public class UserInfoModel
     public string Password { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
     public string[] Roles { get; set; } = { "User" };
-    public string Avatar { get; set; } = "default";
+    public string Avatar { get; set; } = string.Empty;
 
     // Authentication State
     public DateTime LastLogin { get; set; } = DateTime.UtcNow;

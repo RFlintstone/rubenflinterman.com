@@ -1,19 +1,15 @@
-using System;
 using System.Collections;
-using System.IO;
-using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
-using Api.Controllers.Auth;
 using Api.Datastore;
+using Api.Filter;
 using Api.Services.Auth;
 using Api.Services.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Api;
@@ -165,8 +161,10 @@ public class Program
     
     public static async Task Main(string[] args) // Changed to async Task
     {
+        // --- BUILDER ---
         var builder = WebApplication.CreateBuilder(args);
 
+        // --- CONFIGURATION ---
         LoadFileEnvironmentVariablesIntoConfiguration(builder.Configuration);
         var configuration = builder.Configuration;
 
@@ -176,12 +174,18 @@ public class Program
         builder.Services.AddSwaggerGen();
         builder.Services.AddHttpClient();
 
-        // Register services
+        // --- SERVICES (SCOPED) ---
         builder.Services.AddScoped<AvatarService>();
         builder.Services.AddScoped<EncryptionService>();
         builder.Services.AddScoped<UserInfoService>();
+        
+        // --- FILTERS ---
+        builder.Services.AddControllers(options =>
+        {
+            options.Filters.Add<LogSanitizationFilter>();
+        });
 
-        // DB Context
+        // --- DATABASE ---
         var conn = configuration.GetConnectionString("Postgres");
         builder.Services.AddDbContext<DatabaseContext>(options =>
             options.UseNpgsql(conn)
@@ -189,18 +193,21 @@ public class Program
                     w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning))
         );
         
-        // Increase the default limits for large file uploads (e.g., 1024 MB)
+        // -- STORAGE ---
         builder.WebHost.ConfigureKestrel(options =>
         {
+            // Set max request body size to 1GB
             options.Limits.MaxRequestBodySize = 1073741824;
         });
         builder.Services.Configure<FormOptions>(options =>
         {
+            // Set multipart body length limit to 1GB
             options.MultipartBodyLengthLimit = 1073741824;
             // options.ValueLengthLimit = int.MaxValue;
             // options.MultipartHeadersLengthLimit = int.MaxValue;
         });
 
+        // --- SECURITY ---
         ConfigureCertificateProtection(builder, configuration);
         ConfigureJwtAuthentication(builder, configuration);
 
@@ -210,7 +217,7 @@ public class Program
         // --- DATABASE INITIALIZATION ---
         if (configuration.GetValue<bool>("RUNNING_IN_DOCKER") || app.Environment.IsDevelopment())
         {
-            // Use the seeder we created in the previous step
+            // Seed the database when running in Docker or in a Development environment
             await DbInitializer.InitializeAsync(app.Services);
         }
 
@@ -221,10 +228,12 @@ public class Program
             app.UseSwaggerUI();
         }
 
+        // --- MIDDLEWARE ---
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
 
+        // --- RUN ---
         await app.RunAsync();
     }
 }
