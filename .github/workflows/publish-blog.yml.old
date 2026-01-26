@@ -59,4 +59,5 @@ jobs:
           TAGS: ${{ steps.common-steps.outputs.tags }}
           DIGEST: ${{ steps.build-and-push.outputs.digest }}
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
         
