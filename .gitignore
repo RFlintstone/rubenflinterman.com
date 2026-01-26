@@ -987,4 +987,4 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/csharp,java,node,jetbrains+all,visualstudio,visualstudiocode,dotnetcore,aspnetcore
 
-deprecated
+deprecated/
