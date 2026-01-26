@@ -1,0 +1,37 @@
+{
+  "files": {
+    "main.css": "/static/css/main.5a46549b.css",
+    "main.js": "/static/js/main.33da40ad.js",
+    "static/js/471.adbf7d08.chunk.js": "/static/js/471.adbf7d08.chunk.js",
+    "static/js/842.943e3a33.chunk.js": "/static/js/842.943e3a33.chunk.js",
+    "static/js/219.fc2d4c48.chunk.js": "/static/js/219.fc2d4c48.chunk.js",
+    "static/js/223.1ca3dc30.chunk.js": "/static/js/223.1ca3dc30.chunk.js",
+    "static/js/304.2650238f.chunk.js": "/static/js/304.2650238f.chunk.js",
+    "static/js/665.f5739132.chunk.js": "/static/js/665.f5739132.chunk.js",
+    "static/js/845.a29e00ce.chunk.js": "/static/js/845.a29e00ce.chunk.js",
+    "static/media/montserrat-latin-ext-400-normal.woff": "/static/media/montserrat-latin-ext-400-normal.89d9bb7d8d46019bbb7b.woff",
+    "static/media/montserrat-latin-ext-400-normal.woff2": "/static/media/montserrat-latin-ext-400-normal.2d8121b81156105f33b9.woff2",
+    "static/media/montserrat-latin-400-normal.woff": "/static/media/montserrat-latin-400-normal.907a356a92ed8599f660.woff",
+    "static/media/montserrat-latin-400-normal.woff2": "/static/media/montserrat-latin-400-normal.be11f029bc2fff5574a8.woff2",
+    "static/media/montserrat-cyrillic-ext-400-normal.woff": "/static/media/montserrat-cyrillic-ext-400-normal.f6089642713132ee161e.woff",
+    "static/media/montserrat-cyrillic-ext-400-normal.woff2": "/static/media/montserrat-cyrillic-ext-400-normal.98c6748b7d590ea7b980.woff2",
+    "static/media/montserrat-cyrillic-400-normal.woff2": "/static/media/montserrat-cyrillic-400-normal.f1372c6da10f0872f256.woff2",
+    "static/media/montserrat-cyrillic-400-normal.woff": "/static/media/montserrat-cyrillic-400-normal.fdfc849048f4ae886918.woff",
+    "static/media/montserrat-vietnamese-400-normal.woff2": "/static/media/montserrat-vietnamese-400-normal.08d11513a3457d97615f.woff2",
+    "static/media/montserrat-vietnamese-400-normal.woff": "/static/media/montserrat-vietnamese-400-normal.b8cc86df02e09d41231f.woff",
+    "index.html": "/index.html",
+    "main.5a46549b.css.map": "/static/css/main.5a46549b.css.map",
+    "main.33da40ad.js.map": "/static/js/main.33da40ad.js.map",
+    "471.adbf7d08.chunk.js.map": "/static/js/471.adbf7d08.chunk.js.map",
+    "842.943e3a33.chunk.js.map": "/static/js/842.943e3a33.chunk.js.map",
+    "219.fc2d4c48.chunk.js.map": "/static/js/219.fc2d4c48.chunk.js.map",
+    "223.1ca3dc30.chunk.js.map": "/static/js/223.1ca3dc30.chunk.js.map",
+    "304.2650238f.chunk.js.map": "/static/js/304.2650238f.chunk.js.map",
+    "665.f5739132.chunk.js.map": "/static/js/665.f5739132.chunk.js.map",
+    "845.a29e00ce.chunk.js.map": "/static/js/845.a29e00ce.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.5a46549b.css",
+    "static/js/main.33da40ad.js"
+  ]
+}
