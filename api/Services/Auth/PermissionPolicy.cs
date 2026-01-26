@@ -17,10 +17,16 @@ public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
         AuthorizationHandlerContext context,
         PermissionRequirement requirement)
     {
-        // 1. Get all "permission" claims from the user's JWT
+        // Get all "permission" claims from the user's JWT
         var userPermissions = context.User.FindAll("permission").Select(x => x.Value).ToList();
 
-        // 2. Logic: User succeeds if they have the specific permission 
+        // If banned from API access, fail immediately
+        if (userPermissions.Contains(AuthConstants.Permissions.Names.BannedFromAPI))
+        {
+            context.Fail();
+            return Task.CompletedTask;
+        }
+        
         // OR if they have the 'AllAccess' super-permission.
         if (userPermissions.Contains(requirement.PermissionName) || userPermissions.Contains(AuthConstants.Permissions.Names.AllAccess))
         {
