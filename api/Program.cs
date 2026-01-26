@@ -2,11 +2,13 @@ using System.Collections;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
+using Api.Constants;
 using Api.Datastore;
 using Api.Filter;
 using Api.Services.Auth;
 using Api.Services.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
@@ -157,6 +159,17 @@ public class Program
                     ClockSkew = TimeSpan.FromMinutes(2)
                 };
             });
+
+        builder.Services.AddAuthorization(options =>
+        {
+            // Dynamically register every permission in your AuthConstants as a Policy
+            foreach (var permission in AuthConstants.Permissions.AllPermissions)
+            {
+                options.AddPolicy(permission.PermissionName, policy =>
+                    policy.Requirements.Add(new PermissionRequirement(permission.PermissionName)));
+            }
+        });
+        builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
     }
     
     public static async Task Main(string[] args) // Changed to async Task

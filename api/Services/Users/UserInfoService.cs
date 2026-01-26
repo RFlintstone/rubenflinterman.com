@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using System.Text;
+using Api.Constants;
 using Api.Datastore;
 using Api.Models.Users;
 using Microsoft.EntityFrameworkCore;
@@ -10,10 +11,12 @@ public class UserInfoService : IUserInfoService
 {
     private readonly UserInfoModel _userInfo = new();
     private readonly DatabaseContext _dbContext;
+    private readonly ILogger<UserInfoService> _logger;
 
-    public UserInfoService(DatabaseContext dbContext)
+    public UserInfoService(DatabaseContext dbContext, ILogger<UserInfoService> logger)
     {
         _dbContext = dbContext;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     //========================================
@@ -24,7 +27,7 @@ public class UserInfoService : IUserInfoService
     public string GetEmail() => _userInfo.Email;
     public string GetPassword() => _userInfo.Password;
     public string GetToken() => _userInfo.RefreshToken;
-    public string[] GetRoles() => _userInfo.Roles;
+    public ICollection<UserRoleModel> GetRoles() => _userInfo.Roles;
     public string GetAvatar() => _userInfo.Avatar;
 
     //========================================
@@ -115,18 +118,27 @@ public class UserInfoService : IUserInfoService
 
         // Check if we have any claims on the user
         if (claims is null) return false;
-
-        // Select all role claims and convert them to a string array
-        var roles = claims
-            .Where(c => c.Type == ClaimTypes.Role)
+        
+        // Extract role names from Claims
+        var roleNamesFromClaims = claims
+            .Where(c => c.Type == ClaimTypes.Role || c.Type == "role")
             .Select(c => c.Value)
-            .ToArray();
+            .ToList();
 
-        // Set roles in _userInfo, default to a single "User" role if none are found
-        _userInfo.Roles = roles.Length > 0 ? roles : new[] { "User" };
-
-        // Return true if we have any roles other than the default "User" role
-        return _userInfo.Roles.Any(role => role != "User");
+        // Map role names to static role definitions from AuthConstants
+        var matchedRoles = AuthConstants.Roles.AllRoles
+            .Where(staticRole => roleNamesFromClaims.Any(name => 
+                name.Equals(staticRole.RoleName, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+        
+        // Set default role in case the user has no roles assigned
+        if (matchedRoles.Count == 0)
+        {
+            matchedRoles.Add(AuthConstants.Roles.GuestUser);
+        }
+        
+        _userInfo.Roles = matchedRoles;
+        return roleNamesFromClaims.Count > 0;
     }
 
     public async Task<bool> SetAvatarAsync(ClaimsPrincipal? claimsPrincipal)

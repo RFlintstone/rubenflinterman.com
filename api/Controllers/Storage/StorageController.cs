@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using Api.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +39,7 @@ public class StorageController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpGet("download/{id}")]
+    [Authorize(Policy = AuthConstants.Permissions.Names.StorageRead)]
     public async Task<IActionResult> DownloadFile(Guid id)
     {
         // Fetch file metadata
@@ -91,6 +93,7 @@ public class StorageController : ControllerBase
     [HttpPost("upload")]
     [RequestSizeLimit(1073741824)] // 1 GB limit
     [Consumes("multipart/form-data")]
+    [Authorize(Policy = AuthConstants.Permissions.Names.StorageWrite)]
     public async Task<IActionResult> UploadFile()
     {
         // Validate request content type
@@ -114,6 +117,7 @@ public class StorageController : ControllerBase
         // IMPORTANT: keep transaction open for entire stream lifetime
         await using var tx = await conn.BeginTransactionAsync();
 
+        string hash = null;
         try
         {
             // Initialize Large Object Manager
@@ -123,29 +127,29 @@ public class StorageController : ControllerBase
             uint oid = loManager.Create();
 
             // Create SHA-256 hash object
-            using var sha256 = SHA256.Create();
+            using (var sha256 = SHA256.Create())
+            {
+                // Open Large Object stream for writing
+                await using var loStream = await loManager.OpenReadWriteAsync(oid);
 
-            // Open Large Object stream for writing
-            await using var loStream = await loManager.OpenReadWriteAsync(oid);
+                // Create CryptoStream to compute hash while writing to Large Object
+                await using var cryptoStream = new CryptoStream(loStream, sha256, CryptoStreamMode.Write);
 
-            // Create CryptoStream to compute hash while writing to Large Object
-            await using var cryptoStream = new CryptoStream(loStream, sha256, CryptoStreamMode.Write);
+                // Stream the uploaded file into the CryptoStream
+                await using var inputStream = file.OpenReadStream();
 
-            // Stream the uploaded file into the CryptoStream
-            await using var inputStream = file.OpenReadStream();
+                // Copy input stream to crypto stream. This writes the data to the Large Object and computes the hash.
+                await inputStream.CopyToAsync(cryptoStream);
 
-            // Copy input stream to crypto stream. This writes the data to the Large Object and computes the hash.
-            await inputStream.CopyToAsync(cryptoStream);
+                // Finalize the hash computation and flush any remaining data
+                await cryptoStream.FlushFinalBlockAsync();
 
-            // Finalize the hash computation and flush any remaining data
-            await cryptoStream.FlushFinalBlockAsync();
+                // Get the computed SHA-256 hash as a hex string. 
+                hash = BitConverter.ToString(sha256.Hash!).Replace("-", "").ToLowerInvariant();
 
-            // Get the computed SHA-256 hash as a hex string. 
-            string hash = BitConverter.ToString(sha256.Hash!).Replace("-", "").ToLowerInvariant();
-
-            // Prepare the INSERT command to store metadata
-            await using var cmd = new NpgsqlCommand(
-                @"INSERT INTO file_storage(
+                // Prepare the INSERT command to store metadata
+                await using var cmd = new NpgsqlCommand(
+                    @"INSERT INTO file_storage(
                          ""Id"", 
                          ""FileName"", 
                          ""ContentType"", 
@@ -158,24 +162,26 @@ public class StorageController : ControllerBase
                          ""ExpiresAtUtc"",
                          ""IsDeleted"", 
                          ""DownloadCount"") VALUES (@id, @name, @type, @size, @oid, @hash, @now, @isPublic, @ownerId, @expiresAt, @isDeleted, @downloadCount)",
-                conn, tx);
+                    conn, tx);
 
-            // Add parameters to prevent SQL injection
-            cmd.Parameters.AddWithValue("id", fileId);
-            cmd.Parameters.AddWithValue("name", Path.GetFileName(file.FileName));
-            cmd.Parameters.AddWithValue("type", file.ContentType ?? "application/octet-stream");
-            cmd.Parameters.AddWithValue("size", file.Length);
-            cmd.Parameters.Add(new NpgsqlParameter("oid", NpgsqlDbType.Oid) { Value = oid });
-            cmd.Parameters.AddWithValue("hash", hash);
-            cmd.Parameters.AddWithValue("now", DateTime.UtcNow);
-            cmd.Parameters.AddWithValue("isPublic", true);
-            cmd.Parameters.AddWithValue("ownerId", DBNull.Value);
-            cmd.Parameters.AddWithValue("expiresAt", DBNull.Value);
-            cmd.Parameters.AddWithValue("isDeleted", false);
-            cmd.Parameters.AddWithValue("downloadCount", 0);
+                // Add parameters to prevent SQL injection
+                cmd.Parameters.AddWithValue("id", fileId);
+                cmd.Parameters.AddWithValue("name", Path.GetFileName(file.FileName));
+                cmd.Parameters.AddWithValue("type", file.ContentType ?? "application/octet-stream");
+                cmd.Parameters.AddWithValue("size", file.Length);
+                cmd.Parameters.Add(new NpgsqlParameter("oid", NpgsqlDbType.Oid) { Value = oid });
+                cmd.Parameters.AddWithValue("hash", hash);
+                cmd.Parameters.AddWithValue("now", DateTime.UtcNow);
+                cmd.Parameters.AddWithValue("isPublic", true);
+                cmd.Parameters.AddWithValue("ownerId", DBNull.Value);
+                cmd.Parameters.AddWithValue("expiresAt", DBNull.Value);
+                cmd.Parameters.AddWithValue("isDeleted", false);
+                cmd.Parameters.AddWithValue("downloadCount", 0);
 
-            // Execute the INSERT command
-            await cmd.ExecuteNonQueryAsync();
+                // Execute the INSERT command
+                await cmd.ExecuteNonQueryAsync();
+            }
+
             await tx.CommitAsync();
 
             // Return the file ID and hash to the client
@@ -183,25 +189,44 @@ public class StorageController : ControllerBase
         }
         catch (Exception ex)
         {
-            // On error, rollback transaction to avoid partial data
-            await tx.RollbackAsync();
-
-            // Log the error for diagnostics if in Development environment
-            if (_logger.IsEnabled(LogLevel.Information) && IsDevelopmentEnvironment())
+            try
             {
-                // Log detailed error in Development environment
-                _logger.LogError(ex, "Upload failed for {File}", file.FileName);
+                if (tx.Connection != null)
+                {
+                    // Attempt to rollback transaction
+                    await tx.RollbackAsync();
+                }
                 
-                // Return detailed error message
-                return StatusCode(500, ex.Message);
+                // Log the error for diagnostics if in Development environment
+                if (_logger.IsEnabled(LogLevel.Information) && IsDevelopmentEnvironment())
+                {
+                    // Log detailed error in Development environment
+                    _logger.LogError(ex, "Upload failed for {File}", file.FileName);
+                    
+                    // Return detailed error message
+                    return StatusCode(500, ex.Message);
+                }
             }
-
+            catch (Exception rollbackEx)
+            {
+                // Log the error for diagnostics if in Development environment
+                if (_logger.IsEnabled(LogLevel.Information) && IsDevelopmentEnvironment())
+                {
+                    // Log detailed error in Development environment
+                    _logger.LogError(rollbackEx, "Failed to rollback transaction");
+                    
+                    // Return detailed rollback error message
+                    return StatusCode(500, $"Upload failed: {rollbackEx.Message}");
+                }
+            }
+            
             // Return a generic 500 Internal Server Error.
             return StatusCode(500, "Upload failed");
         }
     }
 
     [HttpDelete("delete/{id}")]
+    [Authorize(Policy = AuthConstants.Permissions.Names.StorageDelete)]
     public async Task<IActionResult> DeleteFile(Guid id)
     {
         // Fetch the OID from the file_storage table

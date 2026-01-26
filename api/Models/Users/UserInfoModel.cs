@@ -8,7 +8,7 @@ public class UserInfoModel
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
-    public string[] Roles { get; set; } = { "User" };
+    public virtual ICollection<UserRoleModel> Roles { get; set; } = new List<UserRoleModel>();
     public string Avatar { get; set; } = string.Empty;
 
     // Authentication State

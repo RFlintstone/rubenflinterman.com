@@ -1,4 +1,5 @@
-﻿using Api.Datastore;
+﻿using Api.Constants;
+using Api.Datastore;
 using Api.Models.Auth;
 using Api.Models.Users;
 using Api.Services.Auth;
@@ -17,7 +18,8 @@ public class AuthController : ControllerBase
     private readonly EncryptionService _encryptionService;
     private readonly AvatarService _avatarService;
 
-    public AuthController(DatabaseContext dbContext, ILogger<AuthController> logger, EncryptionService encryptionService, AvatarService avatarService)
+    public AuthController(DatabaseContext dbContext, ILogger<AuthController> logger,
+        EncryptionService encryptionService, AvatarService avatarService)
     {
         _dbContext = dbContext;
         _logger = logger;
@@ -36,9 +38,16 @@ public class AuthController : ControllerBase
 
         // Generate new User ID
         var newUserId = Guid.NewGuid();
-        
+
         // Fetch the avatar (Still awaiting here for simplicity, but it's now decoupled)
         var avatarBase64 = await _avatarService.GetDefaultAvatarBase64Async(model.Username);
+
+        // Fetch the default role from the database
+        var defaultRole = await _dbContext.UserRoles
+            .FirstOrDefaultAsync(r => r.RoleName.ToLower() == AuthConstants.Roles.RegularUser.RoleName.ToLower());
+        
+        // Ensure the default role exists
+        if (defaultRole == null) return BadRequest("Something went wrong during registration. Please try again later.");
         
         // Create the new user
         var newUser = new UserInfoModel
@@ -47,9 +56,9 @@ public class AuthController : ControllerBase
             Username = model.Username,
             Email = model.Email,
             PhoneNumber = model.PhoneNumber ?? string.Empty,
-            Roles = new[] { "User" },
-            // Encrypt the password using the new ID as a salt/context
-            Password = Convert.ToBase64String(_encryptionService.Encrypt(model.Password, newUserId)),
+            Roles = new List<UserRoleModel> { defaultRole },
+            Password = Convert.ToBase64String(_encryptionService.Encrypt(model.Password,
+                newUserId)), // Encrypt the password using the new ID as a salt/context
             Avatar = avatarBase64,
             LastLogin = DateTime.UtcNow,
             RefreshToken = Guid.NewGuid().ToString(),
@@ -68,7 +77,8 @@ public class AuthController : ControllerBase
         }
 
         // Return success (Optionally return the initial tokens so they are logged in immediately)
-        return CreatedAtAction(nameof(Register), new { id = newUser.Id }, new { 
+        return CreatedAtAction(nameof(Register), new { id = newUser.Id }, new
+        {
             Message = "User registered successfully",
             UserId = newUser.Id
         });
