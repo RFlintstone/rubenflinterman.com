@@ -40,7 +40,7 @@ public class UserController(UserInfoService userInfoService) : ControllerBase
         userInfoService.SetRoles(User);
 
         // Check if the user has the "Admin" role
-        bool isAdmin = userInfoService.GetRoles().Contains("Admin");
+        bool isAdmin = userInfoService.GetRoles().Any(role => role.RoleName == "Admin");
 
         // Return user information along with admin status
         return Ok(new

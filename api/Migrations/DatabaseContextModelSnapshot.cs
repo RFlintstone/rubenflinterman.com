@@ -21,6 +21,67 @@ namespace Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Api.Models.Storage.FileStorageModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DownloadCount")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("boolean");
+
+                    b.Property<uint>("LargeObjectOid")
+                        .HasColumnType("oid");
+
+                    b.Property<DateTime?>("LastAccessedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Sha256Hash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("char(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("Sha256Hash");
+
+                    b.HasIndex("ExpiresAtUtc", "IsDeleted");
+
+                    b.ToTable("file_storage");
+                });
+
             modelBuilder.Entity("Api.Models.Users.UserInfoModel", b =>
                 {
                     b.Property<Guid>("Id")
@@ -55,10 +116,6 @@ namespace Api.Migrations
                     b.Property<DateTime>("RefreshTokenExpiry")
                         .HasColumnType("timestamp with time zone");
 
-                    b.PrimitiveCollection<string[]>("Roles")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("text");
@@ -66,6 +123,116 @@ namespace Api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Api.Models.Users.UserPermissionModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("OnUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PermissionName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PermissionName")
+                        .IsUnique();
+
+                    b.ToTable("UserPermissions");
+                });
+
+            modelBuilder.Entity("Api.Models.Users.UserRoleModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RoleName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleName")
+                        .IsUnique();
+
+                    b.ToTable("UserRoles");
+                });
+
+            modelBuilder.Entity("UserInfoModelUserRoleModel", b =>
+                {
+                    b.Property<Guid>("RolesId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserInfoModelId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("RolesId", "UserInfoModelId");
+
+                    b.HasIndex("UserInfoModelId");
+
+                    b.ToTable("UserInfoModelUserRoleModel");
+                });
+
+            modelBuilder.Entity("UserPermissionModelUserRoleModel", b =>
+                {
+                    b.Property<Guid>("RolePermissionsId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserRoleModelId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("RolePermissionsId", "UserRoleModelId");
+
+                    b.HasIndex("UserRoleModelId");
+
+                    b.ToTable("UserPermissionModelUserRoleModel");
+                });
+
+            modelBuilder.Entity("UserInfoModelUserRoleModel", b =>
+                {
+                    b.HasOne("Api.Models.Users.UserRoleModel", null)
+                        .WithMany()
+                        .HasForeignKey("RolesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Api.Models.Users.UserInfoModel", null)
+                        .WithMany()
+                        .HasForeignKey("UserInfoModelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("UserPermissionModelUserRoleModel", b =>
+                {
+                    b.HasOne("Api.Models.Users.UserPermissionModel", null)
+                        .WithMany()
+                        .HasForeignKey("RolePermissionsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Api.Models.Users.UserRoleModel", null)
+                        .WithMany()
+                        .HasForeignKey("UserRoleModelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

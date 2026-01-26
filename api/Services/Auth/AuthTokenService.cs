@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Api.Models.Users;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Api.Services.Auth;
@@ -17,10 +18,13 @@ public class AuthTokenService
     }
 
     // Generating token based on user information
-    public JwtSecurityToken GenerateAccessToken(string userName, Guid userId, string[] roles)
+    public JwtSecurityToken GenerateAccessToken(UserInfoModel user, string[] roles)
     {
         try
         {
+            var userId = user.Id;
+            var userName = user.Username;
+
             // Log token request
             if (_logger.IsEnabled(LogLevel.Information))
             {
@@ -30,13 +34,19 @@ public class AuthTokenService
             // Create user claims
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, userName),
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.Name, userName),
                 // Additional claims as needed (e.g., roles, etc.)
             };
-
+            
             // Add a separate Claim for each role
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            
+            // Find user permissions
+            var userPermissions = user.Roles.SelectMany(r => r.RolePermissions).Select(p => p.PermissionName).Distinct();
+            
+            // Add a separate Claim for each permission
+            claims.AddRange(userPermissions.Select(permission => new Claim("permission", permission)));
             
             // Get config
             var issuer = _configuration["JwtSettings:Issuer"];
