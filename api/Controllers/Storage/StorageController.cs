@@ -55,7 +55,7 @@ public class StorageController : ControllerBase
             .FirstOrDefaultAsync(u => u.Id == requestingUserId);
 
         // Check if there is a valid user making the request
-        if (requestingUser == null) return Forbid("User not found.");
+        if (requestingUser == null) return NotFound("User not found.");
 
         // // Get user permissions
         // var userPermissions = requestingUser.Roles
@@ -73,20 +73,20 @@ public class StorageController : ControllerBase
         // Check if user wants to make the file public or private
         var isPublicValue = form["isPublic"].FirstOrDefault();
 
+        // Parse isPublic flag in case the user may upload a file
+        bool isPublic = bool.TryParse(isPublicValue, out var result);
+        
         // Check if user has permission to set public files
-        if (!this.User.HasPermission(AuthConstants.Permissions.Names.StorageWritePublic) && isPublicValue == "true")
+        if (!this.User.HasPermission(AuthConstants.Permissions.Names.StorageWritePublic) && isPublic)
         {
-            return Forbid("You do not have permission to upload public files.");
+            return StatusCode(403, "You do not have permission to upload public files.");
         }
 
         // Check if user has permission to set private files
-        if (!this.User.HasPermission(AuthConstants.Permissions.Names.StorageWritePrivate) && isPublicValue == "false")
+        if (!this.User.HasPermission(AuthConstants.Permissions.Names.StorageWritePrivate) && !isPublic)
         {
-            return Forbid("You do not have permission to upload private files.");
+            return StatusCode(403, "You do not have permission to upload private files.");
         }
-
-        // Parse isPublic flag in case the user may upload a file
-        bool isPublic = bool.TryParse(isPublicValue, out var result);
 
         // Validate file presence
         if (file == null || file.Length == 0) return BadRequest("No file provided.");
@@ -236,7 +236,7 @@ public class StorageController : ControllerBase
             .ToList() ?? new List<string>();
 
         // Check if there is a valid user requesting the file
-        if (requestingUser == null) return Forbid("User not found.");
+        if (requestingUser == null) return StatusCode(403, "User not found.");
 
         // Fetch file metadata
         var fileMeta = await _dbContext.FileStorage
@@ -255,31 +255,31 @@ public class StorageController : ControllerBase
 
         // Check existence of file by checking if metadata was found
         if (fileMeta == null) return NotFound();
-        
+
         // Check if file is marked as deleted
         if (fileMeta.IsDeleted) return NotFound();
-        
+
         // Check if the user has permission to read ALL public files
         if (fileMeta.IsPublic && !this.User.HasPermission(AuthConstants.Permissions.Names.StorageReadAllPublic))
         {
             // Public file but user lacks global public read permission
-            return Forbid("You do not have permission to access public files.");
+            return StatusCode(403, "You do not have permission to access public files.");
         }
-        
+
         if (!fileMeta.IsPublic && !this.User.HasPermission(AuthConstants.Permissions.Names.StorageReadAllPrivate))
         {
             // User lacks global private read permission, check ownership
             if (fileMeta.OwnerId != requestingUserId)
             {
                 // Not the owner of the private file
-                return Forbid("You do not have permission to access this private file.");
+                return StatusCode(403, "You do not have permission to access this private file.");
             }
 
             // User is the owner, check if they may read their own private files
             if (!this.User.HasPermission(AuthConstants.Permissions.Names.StorageReadOwned))
             {
                 // Owner lacks permission to read their own private files
-                return Forbid("You do not have permission to access this private file.");
+                return StatusCode(403, "You do not have permission to access this private file.");
             }
         }
 
@@ -320,7 +320,7 @@ public class StorageController : ControllerBase
         Guid? requestingUserId = userIdClaim != null ? Guid.Parse(userIdClaim.Value) : null;
 
         // Check if there is a valid user making the request
-        if (requestingUserId == null) return Forbid("User not found.");
+        if (requestingUserId == null) return StatusCode(403, "User not found.");
 
         // Fetch user info for permission checks
         var requestingUser = await _dbContext.Users
@@ -353,13 +353,13 @@ public class StorageController : ControllerBase
 
             if (fileOwnerId != requestingUserId)
             {
-                return Forbid("You do not have permission to delete this file.");
+                return StatusCode(403, "You do not have permission to delete this file.");
             }
 
             // User is the owner, check if they may delete their own files
             if (!this.User.HasPermission(AuthConstants.Permissions.Names.StorageDeleteOwned))
             {
-                return Forbid("You do not have permission to delete this file.");
+                return StatusCode(403, "You do not have permission to delete this file.");
             }
         }
 
