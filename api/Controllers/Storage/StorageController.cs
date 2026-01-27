@@ -34,58 +34,6 @@ public class StorageController : ControllerBase
     }
 
     /// <summary>
-    /// Streams a file from the database to the client.
-    /// Supports Range Requests (pause/resume) and prevents memory buffering.
-    /// </summary>
-    /// <returns></returns>
-    [HttpGet("download/{id}")]
-    [Authorize(Policy = AuthConstants.Permissions.Names.StorageRead)]
-    public async Task<IActionResult> DownloadFile(Guid id)
-    {
-        // Fetch file metadata
-        var fileMeta = await _dbContext.FileStorage
-            .Where(f => f.Id == id && !f.IsDeleted)
-            .Select(f => new
-            {
-                f.FileName,
-                f.ContentType,
-                f.IsPublic,
-                f.OwnerId,
-                f.IsExpired,
-                f.LargeObjectOid
-            })
-            .FirstOrDefaultAsync();
-
-        // Check existence of file by checking if metadata was found
-        if (fileMeta == null) return NotFound();
-
-        // Check if file has been marked as expired to prevent downloads
-        if (fileMeta.IsExpired) return StatusCode(410, "File has expired.");
-
-        // Prepare DB connection and transaction for Large Object streaming
-        var conn = new NpgsqlConnection(_connectionString);
-        await conn.OpenAsync();
-
-        // Large Object operations must occur within a transaction
-        // IMPORTANT: keep transaction open for entire stream lifetime
-        var tx = await conn.BeginTransactionAsync();
-
-        // Open Large Object stream
-        var loManager = new NpgsqlLargeObjectManager(conn);
-        var loStream = await loManager.OpenReadAsync(fileMeta.LargeObjectOid);
-
-        // Update download stats asynchronously (don't await)
-        _ = UpdateDownloadStats(id);
-
-        // Return the file stream result with appropriate headers
-        return new FileStreamResult(loStream, fileMeta.ContentType)
-        {
-            FileDownloadName = fileMeta.FileName,
-            EnableRangeProcessing = true
-        };
-    }
-
-    /// <summary>
     /// Uploads a file via multipart/form-data.
     /// Streams directly into a PostgreSQL Large Object while calculating SHA-256 hash.
     /// </summary>
@@ -93,15 +41,52 @@ public class StorageController : ControllerBase
     [HttpPost("upload")]
     [RequestSizeLimit(1073741824)] // 1 GB limit
     [Consumes("multipart/form-data")]
-    [Authorize(Policy = AuthConstants.Permissions.Names.StorageWrite)]
+    [Authorize(Policy = AuthConstants.Permissions.Names.StorageWriteEndpointAccess)]
     public async Task<IActionResult> UploadFile()
     {
+        // Get requesting user
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+        Guid? requestingUserId = userIdClaim != null ? Guid.Parse(userIdClaim.Value) : null;
+
+        // Get user info for ownership assignment
+        var requestingUser = await _dbContext.Users
+            .Include(u => u.Roles)
+            .ThenInclude(r => r.RolePermissions)
+            .FirstOrDefaultAsync(u => u.Id == requestingUserId);
+
+        // Check if there is a valid user making the request
+        if (requestingUser == null) return Forbid("User not found.");
+
+        // // Get user permissions
+        // var userPermissions = requestingUser.Roles
+        //     .SelectMany(r => r.RolePermissions)
+        //     .Select(p => p.PermissionName)
+        //     .ToList();
+
         // Validate request content type
         if (!Request.HasFormContentType) return BadRequest("Request must be multipart/form-data");
 
         // Extract file from form data
         var form = await Request.ReadFormAsync();
         var file = form.Files["file"];
+
+        // Check if user wants to make the file public or private
+        var isPublicValue = form["isPublic"].FirstOrDefault();
+
+        // Check if user has permission to set public files
+        if (!this.User.HasPermission(AuthConstants.Permissions.Names.StorageWritePublic) && isPublicValue == "true")
+        {
+            return Forbid("You do not have permission to upload public files.");
+        }
+
+        // Check if user has permission to set private files
+        if (!this.User.HasPermission(AuthConstants.Permissions.Names.StorageWritePrivate) && isPublicValue == "false")
+        {
+            return Forbid("You do not have permission to upload private files.");
+        }
+
+        // Parse isPublic flag in case the user may upload a file
+        bool isPublic = bool.TryParse(isPublicValue, out var result);
 
         // Validate file presence
         if (file == null || file.Length == 0) return BadRequest("No file provided.");
@@ -172,8 +157,8 @@ public class StorageController : ControllerBase
                 cmd.Parameters.Add(new NpgsqlParameter("oid", NpgsqlDbType.Oid) { Value = oid });
                 cmd.Parameters.AddWithValue("hash", hash);
                 cmd.Parameters.AddWithValue("now", DateTime.UtcNow);
-                cmd.Parameters.AddWithValue("isPublic", true);
-                cmd.Parameters.AddWithValue("ownerId", DBNull.Value);
+                cmd.Parameters.AddWithValue("isPublic", isPublic);
+                cmd.Parameters.AddWithValue("ownerId", requestingUser.Id);
                 cmd.Parameters.AddWithValue("expiresAt", DBNull.Value);
                 cmd.Parameters.AddWithValue("isDeleted", false);
                 cmd.Parameters.AddWithValue("downloadCount", 0);
@@ -196,13 +181,13 @@ public class StorageController : ControllerBase
                     // Attempt to rollback transaction
                     await tx.RollbackAsync();
                 }
-                
+
                 // Log the error for diagnostics if in Development environment
                 if (_logger.IsEnabled(LogLevel.Information) && IsDevelopmentEnvironment())
                 {
                     // Log detailed error in Development environment
                     _logger.LogError(ex, "Upload failed for {File}", file.FileName);
-                    
+
                     // Return detailed error message
                     return StatusCode(500, ex.Message);
                 }
@@ -214,21 +199,141 @@ public class StorageController : ControllerBase
                 {
                     // Log detailed error in Development environment
                     _logger.LogError(rollbackEx, "Failed to rollback transaction");
-                    
+
                     // Return detailed rollback error message
                     return StatusCode(500, $"Upload failed: {rollbackEx.Message}");
                 }
             }
-            
+
             // Return a generic 500 Internal Server Error.
             return StatusCode(500, "Upload failed");
         }
     }
 
+    /// <summary>
+    /// Streams a file from the database to the client.
+    /// Supports Range Requests (pause/resume) and prevents memory buffering.
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("download/{id}")]
+    [Authorize(Policy = AuthConstants.Permissions.Names.StorageReadEndpointAccess)]
+    public async Task<IActionResult> DownloadFile(Guid id)
+    {
+        // Get requesting user
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+        Guid? requestingUserId = userIdClaim != null ? Guid.Parse(userIdClaim.Value) : null;
+
+        // Fetch user info for permission checks
+        var requestingUser = await _dbContext.Users
+            .Include(u => u.Roles)
+            .ThenInclude(r => r.RolePermissions)
+            .FirstOrDefaultAsync(u => u.Id == requestingUserId);
+
+        // Get user permissions
+        var userPermissions = requestingUser?.Roles
+            .SelectMany(r => r.RolePermissions)
+            .Select(p => p.PermissionName)
+            .ToList() ?? new List<string>();
+
+        // Check if there is a valid user requesting the file
+        if (requestingUser == null) return Forbid("User not found.");
+
+        // Fetch file metadata
+        var fileMeta = await _dbContext.FileStorage
+            .Where(f => f.Id == id && !f.IsDeleted)
+            .Select(f => new
+            {
+                f.FileName,
+                f.ContentType,
+                f.IsPublic,
+                f.OwnerId,
+                f.IsExpired,
+                f.IsDeleted,
+                f.LargeObjectOid
+            })
+            .FirstOrDefaultAsync();
+
+        // Check existence of file by checking if metadata was found
+        if (fileMeta == null) return NotFound();
+        
+        // Check if file is marked as deleted
+        if (fileMeta.IsDeleted) return NotFound();
+        
+        // Check if the user has permission to read ALL public files
+        if (fileMeta.IsPublic && !this.User.HasPermission(AuthConstants.Permissions.Names.StorageReadAllPublic))
+        {
+            // Public file but user lacks global public read permission
+            return Forbid("You do not have permission to access public files.");
+        }
+        
+        if (!fileMeta.IsPublic && !this.User.HasPermission(AuthConstants.Permissions.Names.StorageReadAllPrivate))
+        {
+            // User lacks global private read permission, check ownership
+            if (fileMeta.OwnerId != requestingUserId)
+            {
+                // Not the owner of the private file
+                return Forbid("You do not have permission to access this private file.");
+            }
+
+            // User is the owner, check if they may read their own private files
+            if (!this.User.HasPermission(AuthConstants.Permissions.Names.StorageReadOwned))
+            {
+                // Owner lacks permission to read their own private files
+                return Forbid("You do not have permission to access this private file.");
+            }
+        }
+
+        // Check if file has been marked as expired to prevent downloads
+        if (fileMeta.IsExpired) return StatusCode(410, "File has expired.");
+
+        // Prepare DB connection and transaction for Large Object streaming
+        var conn = new NpgsqlConnection(_connectionString);
+        await conn.OpenAsync();
+
+        // Large Object operations must occur within a transaction
+        // IMPORTANT: keep transaction open for entire stream lifetime
+        var tx = await conn.BeginTransactionAsync();
+
+        // Open Large Object stream
+        var loManager = new NpgsqlLargeObjectManager(conn);
+        var loStream = await loManager.OpenReadAsync(fileMeta.LargeObjectOid);
+
+        // Update download stats asynchronously (don't await)
+        _ = UpdateDownloadStats(id);
+
+        // Return the file stream result with appropriate headers
+        return new FileStreamResult(loStream, fileMeta.ContentType)
+        {
+            FileDownloadName = fileMeta.FileName,
+            EnableRangeProcessing = true
+        };
+    }
+
+    // TODO: Add update endpoint to modify file metadata (e.g., make private/public, set expiration, etc.). Maybe replace file too?
+
     [HttpDelete("delete/{id}")]
-    [Authorize(Policy = AuthConstants.Permissions.Names.StorageDelete)]
+    [Authorize(Policy = AuthConstants.Permissions.Names.StorageDeleteEndpointAccess)]
     public async Task<IActionResult> DeleteFile(Guid id)
     {
+        // Get requesting user
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+        Guid? requestingUserId = userIdClaim != null ? Guid.Parse(userIdClaim.Value) : null;
+
+        // Check if there is a valid user making the request
+        if (requestingUserId == null) return Forbid("User not found.");
+
+        // Fetch user info for permission checks
+        var requestingUser = await _dbContext.Users
+            .Include(u => u.Roles)
+            .ThenInclude(r => r.RolePermissions)
+            .FirstOrDefaultAsync(u => u.Id == requestingUserId);
+
+        // Get user permissions
+        var userPermissions = requestingUser?.Roles
+            .SelectMany(r => r.RolePermissions)
+            .Select(p => p.PermissionName)
+            .ToList() ?? new List<string>();
+
         // Fetch the OID from the file_storage table
         var fileRecord = await _dbContext.FileStorage
             .Where(f => f.Id == id)
@@ -237,6 +342,26 @@ public class StorageController : ControllerBase
 
         // Check if a file with the 'oid' exists
         if (fileRecord == null) return NotFound("File record not found.");
+
+        // Check if user is the owner of the file 
+        if (!this.User.HasPermission(AuthConstants.Permissions.Names.StorageDeleteAll))
+        {
+            var fileOwnerId = await _dbContext.FileStorage
+                .Where(f => f.Id == id)
+                .Select(f => f.OwnerId)
+                .FirstOrDefaultAsync();
+
+            if (fileOwnerId != requestingUserId)
+            {
+                return Forbid("You do not have permission to delete this file.");
+            }
+
+            // User is the owner, check if they may delete their own files
+            if (!this.User.HasPermission(AuthConstants.Permissions.Names.StorageDeleteOwned))
+            {
+                return Forbid("You do not have permission to delete this file.");
+            }
+        }
 
         // Prepare DB connection and transaction for Large Object deletion
         await using var conn = new NpgsqlConnection(_connectionString);
@@ -282,7 +407,7 @@ public class StorageController : ControllerBase
             // Log the error for diagnostics
             if (_logger.IsEnabled(LogLevel.Information) && IsDevelopmentEnvironment())
             {
-                string sanitizedId = Regex.Replace(id.ToString(), @"[^\w\-]", ""); 
+                string sanitizedId = Regex.Replace(id.ToString(), @"[^\w\-]", "");
                 string sanitizedMessage = Regex.Replace(ex.Message, @"[\r\n]", " ");
                 _logger.LogError(ex, "Failed to delete file {Id}", sanitizedId);
                 return StatusCode(500, $"Deletion failed: {sanitizedMessage}");
@@ -307,7 +432,9 @@ public class StorageController : ControllerBase
         catch (Exception ex)
         {
             // Log error without throwing to avoid impacting the download
-            if (IsDevelopmentEnvironment()) _logger.LogError(ex, "Failed to update download stats for file {FileId} @ {timestamp}", id, DateTime.UtcNow);
+            if (IsDevelopmentEnvironment())
+                _logger.LogError(ex, "Failed to update download stats for file {FileId} @ {timestamp}", id,
+                    DateTime.UtcNow);
             else _logger.LogError(ex, "Failed to update download stats for file @ {timestamp}", DateTime.UtcNow);
         }
     }
