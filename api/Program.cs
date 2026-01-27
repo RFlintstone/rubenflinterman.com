@@ -245,6 +245,9 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
+        
+        // --- HEALTH CHECK ---
+        app.MapGet("/health", () => Results.Ok("API is healthy."));
 
         // --- RUN ---
         await app.RunAsync();
