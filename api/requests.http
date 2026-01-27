@@ -1,4 +1,5 @@
-﻿@URL=http://localhost:8080
+﻿@URL=https://api.rubenflinterman.com
+#@URL=http://localhost:8080
 @Email = admin@admin.com
 @Password=StrongPassword123!
 
