@@ -42,11 +42,13 @@ public class DatabaseContext : DbContext
         // Many-to-Many: User <-> Role
         modelBuilder.Entity<UserInfoModel>()
             .HasMany(u => u.Roles)
-            .WithMany();
+            .WithMany()
+            .UsingEntity(j => j.ToTable("UserRolesJoin"));
 
         // Many-to-Many: Role <-> Permission
         modelBuilder.Entity<UserRoleModel>()
             .HasMany(r => r.RolePermissions)
-            .WithMany();
+            .WithMany()
+            .UsingEntity(j => j.ToTable("RolePermissionsJoin"));
     }
 }
