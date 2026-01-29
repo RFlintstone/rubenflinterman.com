@@ -37,7 +37,7 @@ public class StorageController : ControllerBase
         };
 
         // Only compress if it's 'text/*', 'application/json', or 'application/xml'
-        return qualifyingFileTypes.Any(qft => file.ContentType.StartsWith(qft, StringComparison.OrdinalIgnoreCase));
+        return file.ContentType != null && qualifyingFileTypes.Any(qft => file.ContentType.StartsWith(qft, StringComparison.OrdinalIgnoreCase));
     }
 
     public StorageController(DatabaseContext dbContext, ILogger<StorageController> logger, IConfiguration configuration)
