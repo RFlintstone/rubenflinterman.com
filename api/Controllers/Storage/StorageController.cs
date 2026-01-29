@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Api.Constants;
@@ -24,6 +25,20 @@ public class StorageController : ControllerBase
     /// <returns><c>true</c> if the environment name is Development; otherwise, <c>false</c>.</returns>
     private bool IsDevelopmentEnvironment() =>
         Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+
+    private bool ShouldCompressFile(IFormFile file)
+    {
+        // Define qualifying file types for compression
+        var qualifyingFileTypes = new List<string>
+        {
+            "text/",
+            "application/json",
+            "application/xml"
+        };
+
+        // Only compress if it's 'text/*', 'application/json', or 'application/xml'
+        return qualifyingFileTypes.Any(qft => file.ContentType.StartsWith(qft, StringComparison.OrdinalIgnoreCase));
+    }
 
     public StorageController(DatabaseContext dbContext, ILogger<StorageController> logger, IConfiguration configuration)
     {
@@ -57,12 +72,6 @@ public class StorageController : ControllerBase
         // Check if there is a valid user making the request
         if (requestingUser == null) return NotFound("User not found.");
 
-        // // Get user permissions
-        // var userPermissions = requestingUser.Roles
-        //     .SelectMany(r => r.RolePermissions)
-        //     .Select(p => p.PermissionName)
-        //     .ToList();
-
         // Validate request content type
         if (!Request.HasFormContentType) return BadRequest("Request must be multipart/form-data");
 
@@ -74,7 +83,10 @@ public class StorageController : ControllerBase
         var isPublicValue = form["isPublic"].FirstOrDefault();
 
         // Parse isPublic flag in case the user may upload a file
-        bool isPublic = bool.TryParse(isPublicValue, out var result);
+        if (!bool.TryParse(isPublicValue, out bool isPublic))
+        {
+            isPublic = false; // Default to private if parsing fails or value is missing
+        }
         
         // Check if user has permission to set public files
         if (!this.User.HasPermission(AuthConstants.Permissions.Names.StorageWritePublic) && isPublic)
@@ -102,7 +114,7 @@ public class StorageController : ControllerBase
         // IMPORTANT: keep transaction open for entire stream lifetime
         await using var tx = await conn.BeginTransactionAsync();
 
-        string hash = null;
+        string hash;
         try
         {
             // Initialize Large Object Manager
@@ -123,8 +135,23 @@ public class StorageController : ControllerBase
                 // Stream the uploaded file into the CryptoStream
                 await using var inputStream = file.OpenReadStream();
 
-                // Copy input stream to crypto stream. This writes the data to the Large Object and computes the hash.
-                await inputStream.CopyToAsync(cryptoStream);
+                // Optionally wrap in GZipStream for compression
+                if (ShouldCompressFile(file))
+                {
+                    // Compress file data on-the-fly using GZipStream 
+                    await using var gzipStream = new GZipStream(cryptoStream, CompressionLevel.Optimal);
+
+                    // Copy input stream to gzip stream, which writes to crypto stream
+                    await inputStream.CopyToAsync(gzipStream);
+
+                    // Finalize the gzip stream
+                    await gzipStream.FlushAsync();
+                }
+                else
+                {
+                    // Copy input stream to crypto stream. This writes the data to the Large Object and computes the hash.
+                    await inputStream.CopyToAsync(cryptoStream);
+                }
 
                 // Finalize the hash computation and flush any remaining data
                 await cryptoStream.FlushFinalBlockAsync();
@@ -145,8 +172,9 @@ public class StorageController : ControllerBase
                          ""IsPublic"",
                          ""OwnerId"",
                          ""ExpiresAtUtc"",
-                         ""IsDeleted"", 
-                         ""DownloadCount"") VALUES (@id, @name, @type, @size, @oid, @hash, @now, @isPublic, @ownerId, @expiresAt, @isDeleted, @downloadCount)",
+                         ""IsDeleted"",
+                         ""IsCompressed"",
+                         ""DownloadCount"") VALUES (@id, @name, @type, @size, @oid, @hash, @now, @isPublic, @ownerId, @expiresAt, @isDeleted, @isCompressed, @downloadCount)",
                     conn, tx);
 
                 // Add parameters to prevent SQL injection
@@ -161,6 +189,7 @@ public class StorageController : ControllerBase
                 cmd.Parameters.AddWithValue("ownerId", requestingUser.Id);
                 cmd.Parameters.AddWithValue("expiresAt", DBNull.Value);
                 cmd.Parameters.AddWithValue("isDeleted", false);
+                cmd.Parameters.AddWithValue("isCompressed", ShouldCompressFile(file));
                 cmd.Parameters.AddWithValue("downloadCount", 0);
 
                 // Execute the INSERT command
@@ -229,12 +258,6 @@ public class StorageController : ControllerBase
             .ThenInclude(r => r.RolePermissions)
             .FirstOrDefaultAsync(u => u.Id == requestingUserId);
 
-        // Get user permissions
-        var userPermissions = requestingUser?.Roles
-            .SelectMany(r => r.RolePermissions)
-            .Select(p => p.PermissionName)
-            .ToList() ?? new List<string>();
-
         // Check if there is a valid user requesting the file
         if (requestingUser == null) return StatusCode(403, "User not found.");
 
@@ -249,6 +272,7 @@ public class StorageController : ControllerBase
                 f.OwnerId,
                 f.IsExpired,
                 f.IsDeleted,
+                f.IsCompressed,
                 f.LargeObjectOid
             })
             .FirstOrDefaultAsync();
@@ -259,6 +283,13 @@ public class StorageController : ControllerBase
         // Check if file is marked as deleted
         if (fileMeta.IsDeleted) return NotFound();
 
+        // Check if file is compressed
+        if (fileMeta.IsCompressed)
+        {
+            // Add Content-Encoding header for gzip
+            Response.Headers.Append("Content-Encoding", "gzip");
+        }
+
         // Check if the user has permission to read ALL public files
         if (fileMeta.IsPublic && !this.User.HasPermission(AuthConstants.Permissions.Names.StorageReadAllPublic))
         {
@@ -266,6 +297,7 @@ public class StorageController : ControllerBase
             return StatusCode(403, "You do not have permission to access public files.");
         }
 
+        // Check if the user has permission to read ALL private files
         if (!fileMeta.IsPublic && !this.User.HasPermission(AuthConstants.Permissions.Names.StorageReadAllPrivate))
         {
             // User lacks global private read permission, check ownership
@@ -305,7 +337,7 @@ public class StorageController : ControllerBase
         return new FileStreamResult(loStream, fileMeta.ContentType)
         {
             FileDownloadName = fileMeta.FileName,
-            EnableRangeProcessing = true
+            EnableRangeProcessing = !fileMeta.IsCompressed
         };
     }
 

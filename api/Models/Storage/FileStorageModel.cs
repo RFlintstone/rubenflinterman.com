@@ -101,6 +101,12 @@ public class FileStorageModel
     public bool IsExpired => ExpiresAtUtc.HasValue && ExpiresAtUtc.Value < DateTime.UtcNow;
 
     /// <summary>
+    /// Boolean flag indicating if the file is stored in a compressed format.
+    /// Meant to check if decompression is needed upon retrieval.
+    /// </summary>
+    public bool IsCompressed { get; set; }
+    
+    /// <summary>
     /// Helper for the HTTP Response Header. Forces browsers to download the file 
     /// with the correct name instead of trying to open/render it.
     /// </summary>

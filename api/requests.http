@@ -1,5 +1,5 @@
-﻿@URL=https://api.rubenflinterman.com
-#@URL=http://localhost:8080
+﻿#@URL=https://api.rubenflinterman.com
+@URL=http://localhost:8080
 @Email = admin@admin.com
 @Password=StrongPassword123!
 
@@ -48,7 +48,7 @@ Content-Type: application/json
     client.global.set("refreshToken", response.body.refreshToken);
 %}
 
-### 6. Upload a File
+### 6.1 Upload a File
 POST {{URL}}/api/v1/storage/upload
 Authorization: Bearer {{token}}
 Content-Type: multipart/form-data; boundary=boundary
@@ -58,11 +58,34 @@ Content-Disposition: form-data; name="file"; filename="user_info.html"
 Content-Type: application/octet-stream
 
 < ./user_info.html
+--boundary
+Content-Disposition: form-data; name="isPublic"
+
+false
 --boundary--
 
 > {%
     client.global.set("lastFileId", response.body.id);
 %}
+
+### 6.2 Upload a File that should be compressed
+POST {{URL}}/api/v1/storage/upload
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="test.json"
+Content-Type: application/json
+
+{
+  "message": "test"
+}
+
+--boundary
+Content-Disposition: form-data; name="isPublic"
+
+false
+--boundary--
 
 ### 7. Download the File (Streaming)
 # Targets the ID returned by the previous upload.

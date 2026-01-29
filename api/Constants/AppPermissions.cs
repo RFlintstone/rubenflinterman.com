@@ -35,6 +35,7 @@ public static class AuthConstants
                 // Permissions
                 Permissions.StorageWritePrivate,
                 Permissions.StorageReadOwned,
+                Permissions.StorageReadPublic,
                 Permissions.StorageDeleteOwned
             }
         };
