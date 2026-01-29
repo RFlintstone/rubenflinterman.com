@@ -87,7 +87,7 @@ public class StorageController : ControllerBase
         {
             isPublic = false; // Default to private if parsing fails or value is missing
         }
-        
+
         // Check if user has permission to set public files
         if (!this.User.HasPermission(AuthConstants.Permissions.Names.StorageWritePublic) && isPublic)
         {
@@ -129,32 +129,48 @@ public class StorageController : ControllerBase
                 // Open Large Object stream for writing
                 await using var loStream = await loManager.OpenReadWriteAsync(oid);
 
-                // Create CryptoStream to compute hash while writing to Large Object
-                await using var cryptoStream = new CryptoStream(loStream, sha256, CryptoStreamMode.Write);
-
-                // Stream the uploaded file into the CryptoStream
+                // Stream the uploaded file using original byte stream
                 await using var inputStream = file.OpenReadStream();
+                var buffer = new byte[inputStream.Length];
+                int bytesRead;
 
-                // Optionally wrap in GZipStream for compression
                 if (ShouldCompressFile(file))
                 {
                     // Compress file data on-the-fly using GZipStream 
-                    await using var gzipStream = new GZipStream(cryptoStream, CompressionLevel.Optimal);
+                    await using var gzipStream = new GZipStream(loStream, CompressionLevel.Optimal);
 
-                    // Copy input stream to gzip stream, which writes to crypto stream
-                    await inputStream.CopyToAsync(gzipStream);
+                    while ((bytesRead = await inputStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    {
+                        // Update hash with original bytes
+                        sha256.TransformBlock(buffer, 0, bytesRead, null, 0);
+                        // Write compressed output
+                        await gzipStream.WriteAsync(buffer, 0, bytesRead);
+                    }
 
-                    // Finalize the gzip stream
+                    // Finalize the hash
+                    sha256.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+
+                    // Ensure gzip stream is flushed
                     await gzipStream.FlushAsync();
                 }
                 else
                 {
-                    // Copy input stream to crypto stream. This writes the data to the Large Object and computes the hash.
-                    await inputStream.CopyToAsync(cryptoStream);
-                }
+                    // No compression: write original bytes directly to Large Object
+                    while ((bytesRead = await inputStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    {
+                        // Update hash with original bytes
+                        sha256.TransformBlock(buffer, 0, bytesRead, null, 0);
+                        
+                        // Write raw bytes to LO
+                        await loStream.WriteAsync(buffer, 0, bytesRead);
+                    }
+                    
+                    // Finalize the hash
+                    sha256.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
 
-                // Finalize the hash computation and flush any remaining data
-                await cryptoStream.FlushFinalBlockAsync();
+                    // Ensure LO stream is flushed
+                    await loStream.FlushAsync();
+                }
 
                 // Get the computed SHA-256 hash as a hex string. 
                 hash = BitConverter.ToString(sha256.Hash!).Replace("-", "").ToLowerInvariant();
