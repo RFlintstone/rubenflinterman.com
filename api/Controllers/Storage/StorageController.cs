@@ -355,7 +355,7 @@ public class StorageController : ControllerBase
             var loManager = new NpgsqlLargeObjectManager(conn);
             var loStream = await loManager.OpenReadAsync(fileMeta.LargeObjectOid);
 
-            // Storer either the raw stream or a decompression stream
+            // Store either the raw stream or a decompression stream
             Stream streamToReturn;
 
             // Check if file is compressed
