@@ -372,6 +372,13 @@ public class StorageController : ControllerBase
 
             // Update download stats asynchronously (don't await)
             _ = UpdateDownloadStats(id);
+            
+            // Dispose of transaction and connection when response is completed
+            HttpContext.Response.OnCompleted(async () => 
+            {
+                await tx.DisposeAsync();
+                await conn.DisposeAsync();
+            });
 
             // Return the file stream result with appropriate headers
             return new FileStreamResult(streamToReturn, fileMeta.ContentType)
