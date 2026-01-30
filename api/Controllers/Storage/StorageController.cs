@@ -362,13 +362,12 @@ public class StorageController : ControllerBase
             Stream streamToReturn = fileMeta.IsCompressed
                 ? new GZipStream(loStream, CompressionMode.Decompress, leaveOpen: false)
                 : loStream;
-            
-            // Update download stats asynchronously (don't await)
-            _ = UpdateDownloadStats(id);
 
-            // Dispose of connection, transaction, and LO stream when response is completed
+            // Update download stats when the response has completed
+            // and dispose of connection, transaction, and LO stream
             HttpContext.Response.OnCompleted(async () =>
             {
+                await UpdateDownloadStats(id);
                 await streamToReturn.DisposeAsync();
                 await tx.DisposeAsync();
                 await conn.DisposeAsync();
