@@ -43,6 +43,8 @@ public class FileStorageModel
     
     /// <summary>
     /// Total size in bytes after compression. Uses 'long' to support files larger than 2.1GB.
+    /// When IsCompressed is true, this reflects the actual stored size.
+    /// When false (uncompressed), this value is 0.
     /// </summary>
     [Range(0, long.MaxValue)]
     public long CompressedFileSize { get; set; }
