@@ -391,7 +391,7 @@ public class StorageController : ControllerBase
             // Log the error for diagnostics
             if (_logger.IsEnabled(LogLevel.Information) && IsDevelopmentEnvironment())
             {
-                _logger.LogError(ex, "Download failed for file ID {FileId}", id.ToString().Replace("[^\\w\\-]", ""));
+                _logger.LogError(ex, "Download failed for file ID {FileId}", Regex.Replace(id.ToString(), "[^\\w-]", ""));
             }
 
             // Rollback transaction to avoid open transactions
