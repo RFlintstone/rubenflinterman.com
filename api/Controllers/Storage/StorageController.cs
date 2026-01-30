@@ -369,7 +369,6 @@ public class StorageController : ControllerBase
 
                 // Dispose stream resources
                 await streamToReturn.DisposeAsync();
-                if (loStream != null) await loStream.DisposeAsync();
 
                 // Dispose transaction and connection
                 await tx.DisposeAsync();
