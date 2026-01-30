@@ -358,21 +358,11 @@ public class StorageController : ControllerBase
             var loManager = new NpgsqlLargeObjectManager(conn);
             loStream = await loManager.OpenReadAsync(fileMeta.LargeObjectOid);
 
-            // Storer either the raw stream or a decompression stream
-            Stream streamToReturn;
-
             // Check if file is compressed
-            if (fileMeta.IsCompressed)
-            {
-                // Decompress on-the-fly so user gets the original file.
-                // If we use headers, such as "Content-Encoding: gzip", instead the checksum will not match after download.
-                streamToReturn = new GZipStream(loStream, CompressionMode.Decompress, leaveOpen: false);
-            }
-            else
-            {
-                streamToReturn = loStream;
-            }
-
+            Stream streamToReturn = fileMeta.IsCompressed
+                ? new GZipStream(loStream, CompressionMode.Decompress, leaveOpen: false)
+                : loStream;
+            
             // Update download stats asynchronously (don't await)
             _ = UpdateDownloadStats(id);
 
