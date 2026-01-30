@@ -369,7 +369,11 @@ public class StorageController : ControllerBase
             // Dispose of connection, transaction, and LO stream when response is completed
             HttpContext.Response.OnCompleted(async () =>
             {
+                // Dispose stream resources
                 await streamToReturn.DisposeAsync();
+                if (loStream != null) await loStream.DisposeAsync();
+                
+                // Dispose transaction and connection
                 await tx.DisposeAsync();
                 await conn.DisposeAsync();
             });
