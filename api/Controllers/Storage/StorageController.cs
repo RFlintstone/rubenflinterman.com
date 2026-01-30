@@ -141,13 +141,14 @@ public class StorageController : ControllerBase
                     // Compress file data on-the-fly using GZipStream 
                     await using (var gzipStream = new GZipStream(loStream, CompressionLevel.Optimal, leaveOpen: true))
                     {
-                        while ((bytesRead = await inputStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                        while ((bytesRead = await inputStream.ReadAsync(buffer.AsMemory(0, buffer.Length),
+                                   HttpContext.RequestAborted)) > 0)
                         {
                             // Update hash with original bytes
                             sha256.TransformBlock(buffer, 0, bytesRead, null, 0);
 
                             // Write compressed output
-                            await gzipStream.WriteAsync(buffer, 0, bytesRead);
+                            await gzipStream.WriteAsync(buffer.AsMemory(0, bytesRead), HttpContext.RequestAborted);
                         }
 
                         // Finalize the hash
@@ -411,7 +412,7 @@ public class StorageController : ControllerBase
                     Regex.Replace(id.ToString(), "[^\\w-]", ""));
                 return StatusCode(500, $"Download failed: {ex.Message}");
             }
-            
+
             // Return a generic 500 Internal Server Error.
             return StatusCode(500, "Download failed");
         }
