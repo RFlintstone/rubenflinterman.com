@@ -211,7 +211,7 @@ public class StorageController : ControllerBase
                 cmd.Parameters.AddWithValue("type", file.ContentType ?? "application/octet-stream");
                 cmd.Parameters.AddWithValue("size", file.Length);
                 cmd.Parameters.AddWithValue("compressedSize",
-                    ShouldCompressFile(file) && compressedSize > 0 ? compressedSize : -1);
+                    ShouldCompressFile(file) && compressedSize > 0 ? compressedSize : 0);
                 cmd.Parameters.Add(new NpgsqlParameter("oid", NpgsqlDbType.Oid) { Value = oid });
                 cmd.Parameters.AddWithValue("hash", hash);
                 cmd.Parameters.AddWithValue("now", DateTime.UtcNow);
@@ -362,13 +362,14 @@ public class StorageController : ControllerBase
             Stream streamToReturn = fileMeta.IsCompressed
                 ? new GZipStream(loStream, CompressionMode.Decompress, leaveOpen: false)
                 : loStream;
-            
-            // Update download stats asynchronously (don't await)
-            _ = UpdateDownloadStats(id);
 
-            // Dispose of connection, transaction, and LO stream when response is completed
+            // Update download stats when the response has completed
+            // As wel as dispose of connection, transaction, and LO stream
             HttpContext.Response.OnCompleted(async () =>
             {
+                // Update Download Stats
+                await UpdateDownloadStats(id);
+                
                 // Dispose stream resources
                 await streamToReturn.DisposeAsync();
                 if (loStream != null) await loStream.DisposeAsync();
