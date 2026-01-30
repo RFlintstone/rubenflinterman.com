@@ -37,7 +37,8 @@ public class StorageController : ControllerBase
         };
 
         // Only compress if it's 'text/*', 'application/json', or 'application/xml'
-        return file.ContentType != null && qualifyingFileTypes.Any(qft => file.ContentType.StartsWith(qft, StringComparison.OrdinalIgnoreCase));
+        return file.ContentType != null &&
+               qualifyingFileTypes.Any(qft => file.ContentType.StartsWith(qft, StringComparison.OrdinalIgnoreCase));
     }
 
     public StorageController(DatabaseContext dbContext, ILogger<StorageController> logger, IConfiguration configuration)
@@ -114,7 +115,8 @@ public class StorageController : ControllerBase
         // IMPORTANT: keep transaction open for entire stream lifetime
         await using var tx = await conn.BeginTransactionAsync();
 
-        string hash;
+        string hash; // Track SHA-256 hash
+        long compressedSize = 0; // Track compressed size
         try
         {
             // Initialize Large Object Manager
@@ -131,27 +133,35 @@ public class StorageController : ControllerBase
 
                 // Stream the uploaded file using original byte stream
                 await using var inputStream = file.OpenReadStream();
-                var buffer = new byte[inputStream.Length];
+                var buffer = new byte[81920];
                 int bytesRead;
 
                 if (ShouldCompressFile(file))
                 {
                     // Compress file data on-the-fly using GZipStream 
-                    await using var gzipStream = new GZipStream(loStream, CompressionLevel.Optimal);
-
-                    while ((bytesRead = await inputStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    await using (var gzipStream = new GZipStream(loStream, CompressionLevel.Optimal, leaveOpen: true))
                     {
-                        // Update hash with original bytes
-                        sha256.TransformBlock(buffer, 0, bytesRead, null, 0);
-                        // Write compressed output
-                        await gzipStream.WriteAsync(buffer, 0, bytesRead);
-                    }
+                        while ((bytesRead = await inputStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                        {
+                            // Update hash with original bytes
+                            sha256.TransformBlock(buffer, 0, bytesRead, null, 0);
+                            
+                            // Write compressed output
+                            await gzipStream.WriteAsync(buffer, 0, bytesRead);
+                        }
 
-                    // Finalize the hash
-                    sha256.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+                        // Finalize the hash
+                        sha256.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
 
-                    // Ensure gzip stream is flushed
-                    await gzipStream.FlushAsync();
+                        // Ensure gzip stream is flushed
+                        await gzipStream.FlushAsync();
+                    } // GZipStream disposed here - compression finalized
+                    
+                    // Get the compressed size from the LO stream
+                    compressedSize = loStream.Position;
+                    
+                    // Flush LO stream
+                    await loStream.FlushAsync();
                 }
                 else
                 {
@@ -160,11 +170,11 @@ public class StorageController : ControllerBase
                     {
                         // Update hash with original bytes
                         sha256.TransformBlock(buffer, 0, bytesRead, null, 0);
-                        
+
                         // Write raw bytes to LO
                         await loStream.WriteAsync(buffer, 0, bytesRead);
                     }
-                    
+
                     // Finalize the hash
                     sha256.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
 
@@ -182,6 +192,7 @@ public class StorageController : ControllerBase
                          ""FileName"", 
                          ""ContentType"", 
                          ""FileSize"", 
+                         ""CompressedFileSize"",
                          ""LargeObjectOid"", 
                          ""Sha256Hash"", 
                          ""CreatedAtUtc"", 
@@ -190,7 +201,7 @@ public class StorageController : ControllerBase
                          ""ExpiresAtUtc"",
                          ""IsDeleted"",
                          ""IsCompressed"",
-                         ""DownloadCount"") VALUES (@id, @name, @type, @size, @oid, @hash, @now, @isPublic, @ownerId, @expiresAt, @isDeleted, @isCompressed, @downloadCount)",
+                         ""DownloadCount"") VALUES (@id, @name, @type, @size, @compressedSize, @oid, @hash, @now, @isPublic, @ownerId, @expiresAt, @isDeleted, @isCompressed, @downloadCount)",
                     conn, tx);
 
                 // Add parameters to prevent SQL injection
@@ -198,6 +209,8 @@ public class StorageController : ControllerBase
                 cmd.Parameters.AddWithValue("name", Path.GetFileName(file.FileName));
                 cmd.Parameters.AddWithValue("type", file.ContentType ?? "application/octet-stream");
                 cmd.Parameters.AddWithValue("size", file.Length);
+                cmd.Parameters.AddWithValue("compressedSize", 
+                    ShouldCompressFile(file) && compressedSize > 0 ? compressedSize : -1);
                 cmd.Parameters.Add(new NpgsqlParameter("oid", NpgsqlDbType.Oid) { Value = oid });
                 cmd.Parameters.AddWithValue("hash", hash);
                 cmd.Parameters.AddWithValue("now", DateTime.UtcNow);
@@ -221,9 +234,10 @@ public class StorageController : ControllerBase
         {
             try
             {
+                // Check if transaction is still valid before rolling back.
                 if (tx.Connection != null)
                 {
-                    // Attempt to rollback transaction
+                    // Attempt to rollback transaction.
                     await tx.RollbackAsync();
                 }
 
@@ -298,14 +312,7 @@ public class StorageController : ControllerBase
 
         // Check if file is marked as deleted
         if (fileMeta.IsDeleted) return NotFound();
-
-        // Check if file is compressed
-        if (fileMeta.IsCompressed)
-        {
-            // Add Content-Encoding header for gzip
-            Response.Headers.Append("Content-Encoding", "gzip");
-        }
-
+        
         // Check if the user has permission to read ALL public files
         if (fileMeta.IsPublic && !this.User.HasPermission(AuthConstants.Permissions.Names.StorageReadAllPublic))
         {
@@ -342,19 +349,53 @@ public class StorageController : ControllerBase
         // IMPORTANT: keep transaction open for entire stream lifetime
         var tx = await conn.BeginTransactionAsync();
 
-        // Open Large Object stream
-        var loManager = new NpgsqlLargeObjectManager(conn);
-        var loStream = await loManager.OpenReadAsync(fileMeta.LargeObjectOid);
-
-        // Update download stats asynchronously (don't await)
-        _ = UpdateDownloadStats(id);
-
-        // Return the file stream result with appropriate headers
-        return new FileStreamResult(loStream, fileMeta.ContentType)
+        try
         {
-            FileDownloadName = fileMeta.FileName,
-            EnableRangeProcessing = !fileMeta.IsCompressed
-        };
+            // Open Large Object stream
+            var loManager = new NpgsqlLargeObjectManager(conn);
+            var loStream = await loManager.OpenReadAsync(fileMeta.LargeObjectOid);
+
+            // Storer either the raw stream or a decompression stream
+            Stream streamToReturn;
+
+            // Check if file is compressed
+            if (fileMeta.IsCompressed)
+            {
+                // Decompress on-the-fly so user gets the original file.
+                // If we use headers, such as "Content-Encoding: gzip", instead the checksum will not match after download.
+                streamToReturn = new GZipStream(loStream, CompressionMode.Decompress, leaveOpen: false);
+            }
+            else
+            {
+                streamToReturn = loStream;
+            }
+
+            // Update download stats asynchronously (don't await)
+            _ = UpdateDownloadStats(id);
+
+            // Return the file stream result with appropriate headers
+            return new FileStreamResult(streamToReturn, fileMeta.ContentType)
+            {
+                FileDownloadName = fileMeta.FileName,
+                EnableRangeProcessing = !fileMeta.IsCompressed
+            };
+        } catch (Exception ex)
+        {
+            // Log the error for diagnostics
+            if (_logger.IsEnabled(LogLevel.Information) && IsDevelopmentEnvironment())
+            {
+                _logger.LogError(ex, "Download failed for file ID {FileId}", id.ToString().Replace("[^\\w\\-]", ""));
+            }
+
+            // Rollback transaction to avoid open transactions
+            await tx.RollbackAsync();
+            
+            // Dispose of connection as we are finished with database related tasks
+            await conn.DisposeAsync();
+            
+            // Return a generic 500 Internal Server Error.
+            return StatusCode(500, "Download failed");
+        }
     }
 
     // TODO: Add update endpoint to modify file metadata (e.g., make private/public, set expiration, etc.). Maybe replace file too?

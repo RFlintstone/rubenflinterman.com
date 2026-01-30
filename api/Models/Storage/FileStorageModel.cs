@@ -40,6 +40,12 @@ public class FileStorageModel
     /// </summary>
     [Range(0, long.MaxValue)]
     public long FileSize { get; set; }
+    
+    /// <summary>
+    /// Total size in bytes after compression. Uses 'long' to support files larger than 2.1GB.
+    /// </summary>
+    [Range(0, long.MaxValue)]
+    public long CompressedFileSize { get; set; }
 
     /// <summary>
     /// PostgreSQL Large Object reference (OID).

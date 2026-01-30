@@ -27,6 +27,9 @@ namespace Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<long>("CompressedFileSize")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("ContentType")
                         .IsRequired()
                         .HasMaxLength(100)
