@@ -389,7 +389,7 @@ public class StorageController : ControllerBase
         } catch (Exception ex)
         {
             // Log the error for diagnostics
-            if (_logger.IsEnabled(LogLevel.Information) && IsDevelopmentEnvironment())
+            if (_logger.IsEnabled(LogLevel.Error) && IsDevelopmentEnvironment())
             {
                 _logger.LogError(ex, "Download failed for file ID {FileId}", Regex.Replace(id.ToString(), "[^\\w-]", ""));
             }
