@@ -145,7 +145,7 @@ public class StorageController : ControllerBase
                         {
                             // Update hash with original bytes
                             sha256.TransformBlock(buffer, 0, bytesRead, null, 0);
-                            
+
                             // Write compressed output
                             await gzipStream.WriteAsync(buffer, 0, bytesRead);
                         }
@@ -156,10 +156,10 @@ public class StorageController : ControllerBase
                         // Ensure gzip stream is flushed
                         await gzipStream.FlushAsync();
                     } // GZipStream disposed here - compression finalized
-                    
+
                     // Get the compressed size from the LO stream
                     compressedSize = loStream.Position;
-                    
+
                     // Flush LO stream
                     await loStream.FlushAsync();
                 }
@@ -209,7 +209,7 @@ public class StorageController : ControllerBase
                 cmd.Parameters.AddWithValue("name", Path.GetFileName(file.FileName));
                 cmd.Parameters.AddWithValue("type", file.ContentType ?? "application/octet-stream");
                 cmd.Parameters.AddWithValue("size", file.Length);
-                cmd.Parameters.AddWithValue("compressedSize", 
+                cmd.Parameters.AddWithValue("compressedSize",
                     ShouldCompressFile(file) && compressedSize > 0 ? compressedSize : -1);
                 cmd.Parameters.Add(new NpgsqlParameter("oid", NpgsqlDbType.Oid) { Value = oid });
                 cmd.Parameters.AddWithValue("hash", hash);
@@ -312,7 +312,7 @@ public class StorageController : ControllerBase
 
         // Check if file is marked as deleted
         if (fileMeta.IsDeleted) return NotFound();
-        
+
         // Check if the user has permission to read ALL public files
         if (fileMeta.IsPublic && !this.User.HasPermission(AuthConstants.Permissions.Names.StorageReadAllPublic))
         {
@@ -349,11 +349,13 @@ public class StorageController : ControllerBase
         // IMPORTANT: keep transaction open for entire stream lifetime
         var tx = await conn.BeginTransactionAsync();
 
+        Stream? loStream = null; // Track for cleanup
+
         try
         {
             // Open Large Object stream
             var loManager = new NpgsqlLargeObjectManager(conn);
-            var loStream = await loManager.OpenReadAsync(fileMeta.LargeObjectOid);
+            loStream = await loManager.OpenReadAsync(fileMeta.LargeObjectOid);
 
             // Storer either the raw stream or a decompression stream
             Stream streamToReturn;
@@ -372,9 +374,9 @@ public class StorageController : ControllerBase
 
             // Update download stats asynchronously (don't await)
             _ = UpdateDownloadStats(id);
-            
+
             // Dispose of transaction and connection when response is completed
-            HttpContext.Response.OnCompleted(async () => 
+            HttpContext.Response.OnCompleted(async () =>
             {
                 await tx.DisposeAsync();
                 await conn.DisposeAsync();
@@ -386,19 +388,29 @@ public class StorageController : ControllerBase
                 FileDownloadName = fileMeta.FileName,
                 EnableRangeProcessing = !fileMeta.IsCompressed
             };
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
-            // Log the error for diagnostics
-            if (_logger.IsEnabled(LogLevel.Information) && IsDevelopmentEnvironment())
+            // Clean up stream if it was opened
+            if (loStream != null)
             {
-                _logger.LogError(ex, "Download failed for file ID {FileId}", Regex.Replace(id.ToString(), "[^\\w-]", ""));
+                await loStream.DisposeAsync();
             }
 
-            // Rollback transaction to avoid open transactions
+            // Rollback and dispose transaction
             await tx.RollbackAsync();
-            
+            await tx.DisposeAsync();
+
             // Dispose of connection as we are finished with database related tasks
             await conn.DisposeAsync();
+
+            // Log the error for diagnostics
+            if (_logger.IsEnabled(LogLevel.Error) && IsDevelopmentEnvironment())
+            {
+                _logger.LogError(ex, "Download failed for file ID {FileId}",
+                    Regex.Replace(id.ToString(), "[^\\w-]", ""));
+                return StatusCode(500, $"Download failed: {ex.Message}");
+            }
             
             // Return a generic 500 Internal Server Error.
             return StatusCode(500, "Download failed");
