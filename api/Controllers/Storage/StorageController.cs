@@ -211,7 +211,7 @@ public class StorageController : ControllerBase
                 cmd.Parameters.AddWithValue("type", file.ContentType ?? "application/octet-stream");
                 cmd.Parameters.AddWithValue("size", file.Length);
                 cmd.Parameters.AddWithValue("compressedSize",
-                    ShouldCompressFile(file) && compressedSize > 0 ? compressedSize : -1);
+                    ShouldCompressFile(file) && compressedSize > 0 ? compressedSize : 0);
                 cmd.Parameters.Add(new NpgsqlParameter("oid", NpgsqlDbType.Oid) { Value = oid });
                 cmd.Parameters.AddWithValue("hash", hash);
                 cmd.Parameters.AddWithValue("now", DateTime.UtcNow);
