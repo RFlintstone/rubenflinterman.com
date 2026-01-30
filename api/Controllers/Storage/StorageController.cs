@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Api.Constants;
+using Api.Services.Storage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -26,19 +27,15 @@ public class StorageController : ControllerBase
     private bool IsDevelopmentEnvironment() =>
         Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
 
+    /// <summary>
+    /// Determines if a file should be compressed based on content type and file signatures.
+    /// Validates against magic numbers to prevent content-type spoofing.
+    /// </summary>
     private bool ShouldCompressFile(IFormFile file)
     {
-        // Define qualifying file types for compression
-        var qualifyingFileTypes = new List<string>
-        {
-            "text/",
-            "application/json",
-            "application/xml"
-        };
-
-        // Only compress if it's 'text/*', 'application/json', or 'application/xml'
-        return file.ContentType != null &&
-               qualifyingFileTypes.Any(qft => file.ContentType.StartsWith(qft, StringComparison.OrdinalIgnoreCase));
+        FileInspectionService inspectionService = new FileInspectionService();
+        var result = inspectionService.ShouldCompressAsync(file).Result;
+        return Task.FromResult(result).Result;
     }
 
     public StorageController(DatabaseContext dbContext, ILogger<StorageController> logger, IConfiguration configuration)
@@ -369,11 +366,11 @@ public class StorageController : ControllerBase
             {
                 // Update Download Stats
                 await UpdateDownloadStats(id);
-                
+
                 // Dispose stream resources
                 await streamToReturn.DisposeAsync();
                 if (loStream != null) await loStream.DisposeAsync();
-                
+
                 // Dispose transaction and connection
                 await tx.DisposeAsync();
                 await conn.DisposeAsync();
