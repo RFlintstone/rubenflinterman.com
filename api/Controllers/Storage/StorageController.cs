@@ -180,7 +180,13 @@ public class StorageController : ControllerBase
                     await loStream.FlushAsync();
                 }
 
-                // Get the computed SHA-256 hash as a hex string. 
+                // Get the computed SHA-256 hash as a hex string.
+                // NOTE:
+                // - This hash is intentionally computed over the original, uncompressed file bytes,
+                //   even when the data is stored and later served in compressed form (IsCompressed = true).
+                // - It is used for logical identity / deduplication of file content regardless of
+                //   compression, and is *not* an integrity checksum of the compressed byte stream
+                //   stored in the large object.
                 hash = BitConverter.ToString(sha256.Hash!).Replace("-", "").ToLowerInvariant();
 
                 // Prepare the INSERT command to store metadata
