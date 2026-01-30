@@ -361,7 +361,7 @@ public class StorageController : ControllerBase
                 : loStream;
 
             // Update download stats when the response has completed
-            // As wel as dispose of connection, transaction, and LO stream
+            // As well as dispose of connection, transaction, and LO stream
             HttpContext.Response.OnCompleted(async () =>
             {
                 // Update Download Stats
