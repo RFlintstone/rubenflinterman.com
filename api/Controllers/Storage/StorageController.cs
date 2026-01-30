@@ -391,7 +391,7 @@ public class StorageController : ControllerBase
             }
 
             // Rollback and dispose transaction
-            await tx.RollbackAsync();
+            // await tx.RollbackAsync();
             await tx.DisposeAsync();
 
             // Dispose of connection as we are finished with database related tasks
@@ -422,18 +422,6 @@ public class StorageController : ControllerBase
 
         // Check if there is a valid user making the request
         if (requestingUserId == null) return StatusCode(403, "User not found.");
-
-        // Fetch user info for permission checks
-        var requestingUser = await _dbContext.Users
-            .Include(u => u.Roles)
-            .ThenInclude(r => r.RolePermissions)
-            .FirstOrDefaultAsync(u => u.Id == requestingUserId);
-
-        // Get user permissions
-        var userPermissions = requestingUser?.Roles
-            .SelectMany(r => r.RolePermissions)
-            .Select(p => p.PermissionName)
-            .ToList() ?? new List<string>();
 
         // Fetch the OID from the file_storage table
         var fileRecord = await _dbContext.FileStorage
