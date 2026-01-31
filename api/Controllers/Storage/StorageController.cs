@@ -1,6 +1,8 @@
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Api.Constants;
+using Api.Services.Storage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +26,17 @@ public class StorageController : ControllerBase
     /// <returns><c>true</c> if the environment name is Development; otherwise, <c>false</c>.</returns>
     private bool IsDevelopmentEnvironment() =>
         Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+
+    /// <summary>
+    /// Determines if a file should be compressed based on content type and file signatures.
+    /// Validates against magic numbers to prevent content-type spoofing.
+    /// </summary>
+    private bool ShouldCompressFile(IFormFile file)
+    {
+        FileInspectionService inspectionService = new FileInspectionService();
+        var result = inspectionService.ShouldCompressAsync(file).Result;
+        return Task.FromResult(result).Result;
+    }
 
     public StorageController(DatabaseContext dbContext, ILogger<StorageController> logger, IConfiguration configuration)
     {
@@ -57,12 +70,6 @@ public class StorageController : ControllerBase
         // Check if there is a valid user making the request
         if (requestingUser == null) return NotFound("User not found.");
 
-        // // Get user permissions
-        // var userPermissions = requestingUser.Roles
-        //     .SelectMany(r => r.RolePermissions)
-        //     .Select(p => p.PermissionName)
-        //     .ToList();
-
         // Validate request content type
         if (!Request.HasFormContentType) return BadRequest("Request must be multipart/form-data");
 
@@ -74,8 +81,11 @@ public class StorageController : ControllerBase
         var isPublicValue = form["isPublic"].FirstOrDefault();
 
         // Parse isPublic flag in case the user may upload a file
-        bool isPublic = bool.TryParse(isPublicValue, out var result);
-        
+        if (!bool.TryParse(isPublicValue, out bool isPublic))
+        {
+            isPublic = false; // Default to private if parsing fails or value is missing
+        }
+
         // Check if user has permission to set public files
         if (!this.User.HasPermission(AuthConstants.Permissions.Names.StorageWritePublic) && isPublic)
         {
@@ -102,7 +112,8 @@ public class StorageController : ControllerBase
         // IMPORTANT: keep transaction open for entire stream lifetime
         await using var tx = await conn.BeginTransactionAsync();
 
-        string hash = null;
+        string hash; // Track SHA-256 hash
+        long compressedSize = 0; // Track compressed size
         try
         {
             // Initialize Large Object Manager
@@ -117,19 +128,65 @@ public class StorageController : ControllerBase
                 // Open Large Object stream for writing
                 await using var loStream = await loManager.OpenReadWriteAsync(oid);
 
-                // Create CryptoStream to compute hash while writing to Large Object
-                await using var cryptoStream = new CryptoStream(loStream, sha256, CryptoStreamMode.Write);
-
-                // Stream the uploaded file into the CryptoStream
+                // Stream the uploaded file using original byte stream
                 await using var inputStream = file.OpenReadStream();
+                var buffer = new byte[81920];
+                int bytesRead;
 
-                // Copy input stream to crypto stream. This writes the data to the Large Object and computes the hash.
-                await inputStream.CopyToAsync(cryptoStream);
+                if (ShouldCompressFile(file))
+                {
+                    // Compress file data on-the-fly using GZipStream 
+                    await using (var gzipStream = new GZipStream(loStream, CompressionLevel.Optimal, leaveOpen: true))
+                    {
+                        while ((bytesRead = await inputStream.ReadAsync(buffer.AsMemory(0, buffer.Length),
+                                   HttpContext.RequestAborted)) > 0)
+                        {
+                            // Update hash with original bytes
+                            sha256.TransformBlock(buffer, 0, bytesRead, null, 0);
 
-                // Finalize the hash computation and flush any remaining data
-                await cryptoStream.FlushFinalBlockAsync();
+                            // Write compressed output
+                            await gzipStream.WriteAsync(buffer.AsMemory(0, bytesRead), HttpContext.RequestAborted);
+                        }
 
-                // Get the computed SHA-256 hash as a hex string. 
+                        // Finalize the hash
+                        sha256.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+
+                        // Ensure gzip stream is flushed
+                        await gzipStream.FlushAsync();
+                    } // GZipStream disposed here - compression finalized
+
+                    // Get the compressed size from the LO stream
+                    compressedSize = loStream.Position;
+
+                    // Flush LO stream
+                    await loStream.FlushAsync();
+                }
+                else
+                {
+                    // No compression: write original bytes directly to Large Object
+                    while ((bytesRead = await inputStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    {
+                        // Update hash with original bytes
+                        sha256.TransformBlock(buffer, 0, bytesRead, null, 0);
+
+                        // Write raw bytes to LO
+                        await loStream.WriteAsync(buffer, 0, bytesRead);
+                    }
+
+                    // Finalize the hash
+                    sha256.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+
+                    // Ensure LO stream is flushed
+                    await loStream.FlushAsync();
+                }
+
+                // Get the computed SHA-256 hash as a hex string.
+                // NOTE:
+                // - This hash is intentionally computed over the original, uncompressed file bytes,
+                //   even when the data is stored and later served in compressed form (IsCompressed = true).
+                // - It is used for logical identity / deduplication of file content regardless of
+                //   compression, and is *not* an integrity checksum of the compressed byte stream
+                //   stored in the large object.
                 hash = BitConverter.ToString(sha256.Hash!).Replace("-", "").ToLowerInvariant();
 
                 // Prepare the INSERT command to store metadata
@@ -139,14 +196,16 @@ public class StorageController : ControllerBase
                          ""FileName"", 
                          ""ContentType"", 
                          ""FileSize"", 
+                         ""CompressedFileSize"",
                          ""LargeObjectOid"", 
                          ""Sha256Hash"", 
                          ""CreatedAtUtc"", 
                          ""IsPublic"",
                          ""OwnerId"",
                          ""ExpiresAtUtc"",
-                         ""IsDeleted"", 
-                         ""DownloadCount"") VALUES (@id, @name, @type, @size, @oid, @hash, @now, @isPublic, @ownerId, @expiresAt, @isDeleted, @downloadCount)",
+                         ""IsDeleted"",
+                         ""IsCompressed"",
+                         ""DownloadCount"") VALUES (@id, @name, @type, @size, @compressedSize, @oid, @hash, @now, @isPublic, @ownerId, @expiresAt, @isDeleted, @isCompressed, @downloadCount)",
                     conn, tx);
 
                 // Add parameters to prevent SQL injection
@@ -154,6 +213,8 @@ public class StorageController : ControllerBase
                 cmd.Parameters.AddWithValue("name", Path.GetFileName(file.FileName));
                 cmd.Parameters.AddWithValue("type", file.ContentType ?? "application/octet-stream");
                 cmd.Parameters.AddWithValue("size", file.Length);
+                cmd.Parameters.AddWithValue("compressedSize",
+                    ShouldCompressFile(file) && compressedSize > 0 ? compressedSize : 0);
                 cmd.Parameters.Add(new NpgsqlParameter("oid", NpgsqlDbType.Oid) { Value = oid });
                 cmd.Parameters.AddWithValue("hash", hash);
                 cmd.Parameters.AddWithValue("now", DateTime.UtcNow);
@@ -161,6 +222,7 @@ public class StorageController : ControllerBase
                 cmd.Parameters.AddWithValue("ownerId", requestingUser.Id);
                 cmd.Parameters.AddWithValue("expiresAt", DBNull.Value);
                 cmd.Parameters.AddWithValue("isDeleted", false);
+                cmd.Parameters.AddWithValue("isCompressed", ShouldCompressFile(file));
                 cmd.Parameters.AddWithValue("downloadCount", 0);
 
                 // Execute the INSERT command
@@ -176,9 +238,10 @@ public class StorageController : ControllerBase
         {
             try
             {
+                // Check if transaction is still valid before rolling back.
                 if (tx.Connection != null)
                 {
-                    // Attempt to rollback transaction
+                    // Attempt to rollback transaction.
                     await tx.RollbackAsync();
                 }
 
@@ -229,12 +292,6 @@ public class StorageController : ControllerBase
             .ThenInclude(r => r.RolePermissions)
             .FirstOrDefaultAsync(u => u.Id == requestingUserId);
 
-        // Get user permissions
-        var userPermissions = requestingUser?.Roles
-            .SelectMany(r => r.RolePermissions)
-            .Select(p => p.PermissionName)
-            .ToList() ?? new List<string>();
-
         // Check if there is a valid user requesting the file
         if (requestingUser == null) return StatusCode(403, "User not found.");
 
@@ -249,6 +306,7 @@ public class StorageController : ControllerBase
                 f.OwnerId,
                 f.IsExpired,
                 f.IsDeleted,
+                f.IsCompressed,
                 f.LargeObjectOid
             })
             .FirstOrDefaultAsync();
@@ -266,6 +324,7 @@ public class StorageController : ControllerBase
             return StatusCode(403, "You do not have permission to access public files.");
         }
 
+        // Check if the user has permission to read ALL private files
         if (!fileMeta.IsPublic && !this.User.HasPermission(AuthConstants.Permissions.Names.StorageReadAllPrivate))
         {
             // User lacks global private read permission, check ownership
@@ -294,19 +353,68 @@ public class StorageController : ControllerBase
         // IMPORTANT: keep transaction open for entire stream lifetime
         var tx = await conn.BeginTransactionAsync();
 
-        // Open Large Object stream
-        var loManager = new NpgsqlLargeObjectManager(conn);
-        var loStream = await loManager.OpenReadAsync(fileMeta.LargeObjectOid);
+        Stream? loStream = null; // Track for cleanup
 
-        // Update download stats asynchronously (don't await)
-        _ = UpdateDownloadStats(id);
-
-        // Return the file stream result with appropriate headers
-        return new FileStreamResult(loStream, fileMeta.ContentType)
+        try
         {
-            FileDownloadName = fileMeta.FileName,
-            EnableRangeProcessing = true
-        };
+            // Open Large Object stream
+            var loManager = new NpgsqlLargeObjectManager(conn);
+            loStream = await loManager.OpenReadAsync(fileMeta.LargeObjectOid);
+
+            // Check if file is compressed
+            Stream streamToReturn = fileMeta.IsCompressed
+                ? new GZipStream(loStream, CompressionMode.Decompress, leaveOpen: false)
+                : loStream;
+
+            // Update download stats when the response has completed
+            // As well as dispose of connection, transaction, and LO stream
+            HttpContext.Response.OnCompleted(async () =>
+            {
+                // Update Download Stats
+                await UpdateDownloadStats(id);
+
+                // Dispose stream resources
+                await streamToReturn.DisposeAsync();
+                if (loStream != null) await loStream.DisposeAsync();
+
+                // Dispose transaction and connection
+                await tx.DisposeAsync();
+                await conn.DisposeAsync();
+            });
+
+            // Return the file stream result with appropriate headers
+            return new FileStreamResult(streamToReturn, fileMeta.ContentType)
+            {
+                FileDownloadName = fileMeta.FileName,
+                EnableRangeProcessing = !fileMeta.IsCompressed
+            };
+        }
+        catch (Exception ex)
+        {
+            // Clean up stream if it was opened
+            if (loStream != null)
+            {
+                await loStream.DisposeAsync();
+            }
+
+            // Rollback and dispose transaction
+            await tx.RollbackAsync();
+            await tx.DisposeAsync();
+
+            // Dispose of connection as we are finished with database related tasks
+            await conn.DisposeAsync();
+
+            // Log the error for diagnostics
+            if (_logger.IsEnabled(LogLevel.Error) && IsDevelopmentEnvironment())
+            {
+                _logger.LogError(ex, "Download failed for file ID {FileId}",
+                    Regex.Replace(id.ToString(), "[^\\w-]", ""));
+                return StatusCode(500, $"Download failed: {ex.Message}");
+            }
+
+            // Return a generic 500 Internal Server Error.
+            return StatusCode(500, "Download failed");
+        }
     }
 
     // TODO: Add update endpoint to modify file metadata (e.g., make private/public, set expiration, etc.). Maybe replace file too?

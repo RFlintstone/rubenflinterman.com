@@ -35,6 +35,7 @@ public static class AuthConstants
                 // Permissions
                 Permissions.StorageWritePrivate,
                 Permissions.StorageReadOwned,
+                Permissions.StorageReadAllPublic,
                 Permissions.StorageDeleteOwned
             }
         };
@@ -179,7 +180,7 @@ public static class AuthConstants
         };
 
         // Read permissions
-        public static readonly UserPermissionModel StorageReadPublic = new()
+        public static readonly UserPermissionModel StorageReadAllPublic = new()
         {
             Id = Guid.NewGuid(),
             PermissionName = Names.StorageReadAllPublic,
@@ -187,7 +188,7 @@ public static class AuthConstants
             IsEnabled = true
         };
 
-        public static readonly UserPermissionModel StorageReadPrivate = new()
+        public static readonly UserPermissionModel StorageReadAllPrivate = new()
         {
             Id = Guid.NewGuid(),
             PermissionName = Names.StorageReadAllPrivate,
@@ -275,8 +276,8 @@ public static class AuthConstants
             StorageWriteAll,
 
             // Read
-            StorageReadPublic,
-            StorageReadPrivate,
+            StorageReadAllPublic,
+            StorageReadAllPrivate,
             StorageReadAll,
             StorageReadOwned,
 

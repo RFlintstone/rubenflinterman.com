@@ -40,6 +40,14 @@ public class FileStorageModel
     /// </summary>
     [Range(0, long.MaxValue)]
     public long FileSize { get; set; }
+    
+    /// <summary>
+    /// Total size in bytes after compression. Uses 'long' to support files larger than 2.1GB.
+    /// When IsCompressed is true, this reflects the actual stored size.
+    /// When false (uncompressed), this value is 0.
+    /// </summary>
+    [Range(0, long.MaxValue)]
+    public long CompressedFileSize { get; set; }
 
     /// <summary>
     /// PostgreSQL Large Object reference (OID).
@@ -100,6 +108,12 @@ public class FileStorageModel
     [NotMapped]
     public bool IsExpired => ExpiresAtUtc.HasValue && ExpiresAtUtc.Value < DateTime.UtcNow;
 
+    /// <summary>
+    /// Boolean flag indicating if the file is stored in a compressed format.
+    /// Meant to check if decompression is needed upon retrieval.
+    /// </summary>
+    public bool IsCompressed { get; set; }
+    
     /// <summary>
     /// Helper for the HTTP Response Header. Forces browsers to download the file 
     /// with the correct name instead of trying to open/render it.
