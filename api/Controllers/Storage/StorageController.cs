@@ -164,13 +164,13 @@ public class StorageController : ControllerBase
                 else
                 {
                     // No compression: write original bytes directly to Large Object
-                    while ((bytesRead = await inputStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    while ((bytesRead = await inputStream.ReadAsync(buffer.AsMemory(0, buffer.Length), HttpContext.RequestAborted)) > 0)
                     {
                         // Update hash with original bytes
                         sha256.TransformBlock(buffer, 0, bytesRead, null, 0);
 
                         // Write raw bytes to LO
-                        await loStream.WriteAsync(buffer, 0, bytesRead);
+                        await loStream.WriteAsync(buffer.AsMemory(0, bytesRead), HttpContext.RequestAborted);
                     }
 
                     // Finalize the hash
