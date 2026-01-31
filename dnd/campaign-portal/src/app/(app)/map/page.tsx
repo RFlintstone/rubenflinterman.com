@@ -5,7 +5,7 @@ import { useCampaign } from '@/lib/CampaignContext';
 
 export default function MapPage() {
   const { activeCampaign } = useCampaign();
-  const bgClass = activeCampaign.theme === 'blue' ? 'bg-blue-600' : 'bg-amber-600';
+  const bgClass = activeCampaign?.theme === 'blue' ? 'bg-blue-600' : 'bg-amber-600';
 
   return (
     <div className="flex flex-col items-center justify-center h-64 text-slate-600">

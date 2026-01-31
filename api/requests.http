@@ -1,6 +1,6 @@
 ﻿#@URL=https://api.rubenflinterman.com
 @URL=http://localhost:8080
-@Email = admin@admin.com
+@Email=admin@admin.com
 @Password=StrongPassword123!
 
 ### 1. Register a new account
@@ -54,10 +54,10 @@ Authorization: Bearer {{token}}
 Content-Type: multipart/form-data; boundary=boundary
 
 --boundary
-Content-Disposition: form-data; name="file"; filename="user_info.html"
-Content-Type: application/octet-stream
+Content-Disposition: form-data; name="file"; filename="test.json"
+Content-Type: application/json
 
-< ./user_info.html
+< ./test.json
 --boundary
 Content-Disposition: form-data; name="isPublic"
 

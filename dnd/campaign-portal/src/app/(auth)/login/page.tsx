@@ -2,26 +2,59 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Shield, Users, Lock, Mail, Key } from 'lucide-react';
+import { Shield, Users, Lock, Mail, Key, Loader2 } from 'lucide-react'; // Added Loader2
 import { useUser } from '@/lib/UserContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useUser();
 
-  // State for form fields
   const [role, setRole] = useState<'admin' | 'player'>('player');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
 
-    // Here you would normally validate credentials against your DB
-    console.log(`Logging in as ${role}:`, { email, password });
+    try {
+      // 1. Hit your .NET Login endpoint (assuming you have a /login endpoint in AuthController)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/api/v1/token/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-    login(role);
-    router.push('/');
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          const errData = await response.json();
+          throw new Error(errData.message || 'Invalid credentials');
+        } else {
+          const rawText = await response.text();
+          console.error("Server returned non-JSON error:", rawText);
+          throw new Error(`Server Error: ${response.status}`);
+        }
+      }
+
+      const data = await response.json();
+
+      // 2. Store the JWT Token
+      localStorage.setItem('userToken', data.accessToken);
+
+      // 3. Update Global User State
+      login(role);
+
+      // 4. Redirect to Dashboard
+      router.push('/');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -33,15 +66,24 @@ export default function LoginPage() {
             </div>
             <h1 className="text-3xl font-serif text-white mb-2 tracking-tight">Campaign Portal</h1>
 
+            {/* Error Message Display */}
+            {error && (
+                <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-xl text-sm mb-4">
+                  {error}
+                </div>
+            )}
+
             {/* Role Switcher */}
             <div className="flex bg-slate-800 p-1 rounded-xl mb-8 mt-6">
               <button
+                  type="button" // Important: specify type button so it doesn't submit the form
                   onClick={() => setRole('player')}
                   className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${role === 'player' ? 'bg-slate-700 text-white shadow' : 'text-slate-400'}`}
               >
                 Player
               </button>
               <button
+                  type="button"
                   onClick={() => setRole('admin')}
                   className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${role === 'admin' ? 'bg-amber-600 text-white shadow' : 'text-slate-400'}`}
               >
@@ -58,8 +100,9 @@ export default function LoginPage() {
                       type="email"
                       required
                       value={email}
+                      disabled={isSubmitting}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white focus:ring-2 focus:ring-amber-500 outline-none transition-all"
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white focus:ring-2 focus:ring-amber-500 outline-none transition-all disabled:opacity-50"
                       placeholder="name@adventure.com"
                   />
                 </div>
@@ -73,8 +116,9 @@ export default function LoginPage() {
                       type="password"
                       required
                       value={password}
+                      disabled={isSubmitting}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white focus:ring-2 focus:ring-amber-500 outline-none transition-all"
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white focus:ring-2 focus:ring-amber-500 outline-none transition-all disabled:opacity-50"
                       placeholder="••••••••"
                   />
                 </div>
@@ -82,12 +126,19 @@ export default function LoginPage() {
 
               <button
                   type="submit"
-                  className={`w-full py-4 rounded-xl font-bold mt-4 transition-all shadow-lg flex items-center justify-center space-x-2 ${
+                  disabled={isSubmitting}
+                  className={`w-full py-4 rounded-xl font-bold mt-4 transition-all shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50 ${
                       role === 'admin' ? 'bg-amber-600 hover:bg-amber-500 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'
                   }`}
               >
-                {role === 'admin' ? <Lock size={18} /> : <Users size={18} />}
-                <span>Enter World as {role === 'admin' ? 'DM' : 'Player'}</span>
+                {isSubmitting ? (
+                    <Loader2 className="animate-spin" size={18} />
+                ) : (
+                    <>
+                      {role === 'admin' ? <Lock size={18} /> : <Users size={18} />}
+                      <span>Enter World as {role === 'admin' ? 'DM' : 'Player'}</span>
+                    </>
+                )}
               </button>
             </form>
           </div>

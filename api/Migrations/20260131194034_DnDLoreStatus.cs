@@ -5,25 +5,25 @@
 namespace Api.Migrations
 {
     /// <inheritdoc />
-    public partial class CompressedFileSize : Migration
+    public partial class DnDLoreStatus : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<long>(
-                name: "CompressedFileSize",
-                table: "file_storage",
-                type: "bigint",
+            migrationBuilder.AddColumn<string>(
+                name: "Status",
+                table: "DnD_LoreEntries",
+                type: "text",
                 nullable: false,
-                defaultValue: 0L);
+                defaultValue: "");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "CompressedFileSize",
-                table: "file_storage");
+                name: "Status",
+                table: "DnD_LoreEntries");
         }
     }
 }

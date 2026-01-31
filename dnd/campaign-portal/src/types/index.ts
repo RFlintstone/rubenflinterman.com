@@ -3,6 +3,7 @@ export interface Campaign {
   name: string;
   theme: 'amber' | 'blue';
   summary: string;
+  dungeonmaster: any;
 }
 
 export interface User {

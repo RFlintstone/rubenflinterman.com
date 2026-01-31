@@ -38,7 +38,7 @@ public class TokenController : ControllerBase
         // Check if the user exists and the Refresh Token is still valid
         if (user is null || user.RefreshTokenExpiry < DateTime.UtcNow)
         {
-            return Unauthorized("Session expired.");
+            return Unauthorized(new { message = "Invalid or expired refresh token." });
         }
 
         // Generate New Access Token (JWT)
@@ -80,7 +80,7 @@ public class TokenController : ControllerBase
             user.Password != Convert.ToBase64String(_encryptionService.Encrypt(model.Password, user.Id)))
         {
             _logger.LogWarning("Login failed @ {timestamp}", DateTime.UtcNow);
-            return Unauthorized("Invalid credentials.");
+            return Unauthorized(new { message = "Invalid credentials." });
         }
 
         // Create a new Refresh Token
@@ -127,7 +127,7 @@ public class TokenController : ControllerBase
             await _dbContext.SaveChangesAsync();
 
             // Return success response
-            return Ok("Logged out successfully.");
+            return Ok(new { message = "Successfully logged out." });
         }
 
         // If no user found, return NotFound
