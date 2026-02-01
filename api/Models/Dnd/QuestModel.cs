@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Api.Models.Dnd;
 
@@ -16,7 +17,12 @@ public class QuestModel
     [MaxLength(20)] // Enough for 'active', 'completed', 'failed'
     public string Status { get; set; } = "active";
 
-    [Required] public Guid CampaignId { get; set; }
+    [Required]
+    [ForeignKey(nameof(Campaign))]
+    public Guid CampaignId { get; set; }
+
+    [JsonIgnore]
+    public virtual CampaignModel? Campaign { get; set; }
 
     [Required] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

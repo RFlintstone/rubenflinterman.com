@@ -17,7 +17,13 @@ public class AuthTokenService
         _configuration = configuration;
     }
 
-    // Generating token based on user information
+    /// <summary>
+    /// Generates a JWT access token for the specified user and roles.
+    /// </summary>
+    /// <param name="user"></param>
+    /// <param name="roles"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
     public JwtSecurityToken GenerateAccessToken(UserInfoModel user, string[] roles)
     {
         try
@@ -38,21 +44,22 @@ public class AuthTokenService
                 new Claim(ClaimTypes.Name, userName),
                 // Additional claims as needed (e.g., roles, etc.)
             };
-            
+
             // Add a separate Claim for each role
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
-            
+
             // Find user permissions
-            var userPermissions = user.Roles.SelectMany(r => r.RolePermissions).Select(p => p.PermissionName).Distinct();
-            
+            var userPermissions =
+                user.Roles.SelectMany(r => r.RolePermissions).Select(p => p.PermissionName).Distinct();
+
             // Add a separate Claim for each permission
             claims.AddRange(userPermissions.Select(permission => new Claim("permission", permission)));
-            
+
             // Get config
             var issuer = _configuration["JwtSettings:Issuer"];
             var audience = _configuration["JwtSettings:Audience"];
             var secretKey = _configuration["JwtSettings:SecretKey"];
-            
+
             // Check if we have all config values
             if (string.IsNullOrEmpty(issuer) || string.IsNullOrEmpty(audience) || string.IsNullOrEmpty(secretKey))
             {
@@ -86,5 +93,120 @@ public class AuthTokenService
             _logger.LogError(ex, "An error occurred while generating the JWT.");
             throw;
         }
+    }
+
+    public record TokenInspectionResult(
+        bool IsValid,
+        bool IsExpired,
+        ClaimsPrincipal? Principal,
+        JwtSecurityToken? Jwt);
+
+    public TokenInspectionResult ValidateOrInspectToken(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            _logger.LogWarning("Token inspection failed: token is null or empty.");
+            return new TokenInspectionResult(false, false, null, null);
+        }
+
+        token = token.Trim();
+        const string bearerPrefix = "Bearer ";
+        if (token.StartsWith(bearerPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            token = token.Substring(bearerPrefix.Length).Trim();
+        }
+
+        var secretKey = _configuration["JwtSettings:SecretKey"];
+        var issuer = _configuration["JwtSettings:Issuer"];
+        var audience = _configuration["JwtSettings:Audience"];
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        if (!tokenHandler.CanReadToken(token))
+        {
+            _logger.LogWarning("Token inspection failed: token is not in JWS/JWE compact form.");
+            return new TokenInspectionResult(false, false, null, null);
+        }
+
+        var key = Encoding.UTF8.GetBytes(secretKey);
+
+        var validationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = issuer,
+            ValidAudience = audience,
+            IssuerSigningKey = new SymmetricSecurityKey(key)
+        };
+
+        try
+        {
+            var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);
+            return new TokenInspectionResult(true, false, principal, (JwtSecurityToken)validatedToken!);
+        }
+        catch (SecurityTokenExpiredException)
+        {
+            // Token expired -> extract principal without lifetime validation
+            try
+            {
+                var principal = GetPrincipalFromExpiredToken(token);
+                var jwt = tokenHandler.ReadJwtToken(token);
+                return new TokenInspectionResult(false, true, principal, jwt);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to extract principal from expired token.");
+                return new TokenInspectionResult(false, true, null, null);
+            }
+        }
+        catch (SecurityTokenMalformedException)
+        {
+            // malformed token
+            _logger.LogWarning("Token inspection failed: malformed token.");
+            return new TokenInspectionResult(false, false, null, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Token inspection failed.");
+            return new TokenInspectionResult(false, false, null, null);
+        }
+    }
+
+    public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            _logger.LogWarning("GetPrincipalFromExpiredToken called with null or empty token.");
+            throw new SecurityTokenMalformedException("Token is null or empty.");
+        }
+
+        token = token.Trim();
+        const string bearerPrefix = "Bearer ";
+        if (token.StartsWith(bearerPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            token = token.Substring(bearerPrefix.Length).Trim();
+        }
+
+        var secretKey = _configuration["JwtSettings:SecretKey"];
+        var tokenHandler = new JwtSecurityTokenHandler();
+
+        if (!tokenHandler.CanReadToken(token))
+        {
+            _logger.LogWarning("GetPrincipalFromExpiredToken failed: token is not in JWS/JWE compact form.");
+            throw new SecurityTokenMalformedException("JWT is not well formed.");
+        }
+
+        var validationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = false // allow expired tokens
+        };
+
+        var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
+        return principal;
     }
 }

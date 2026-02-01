@@ -192,6 +192,19 @@ public class Program
         builder.Services.AddScoped<EncryptionService>();
         builder.Services.AddScoped<UserInfoService>();
         
+        // --- CORS ---
+        var allowedClients = new[] { "http://localhost:3000", "http://192.168.0.244:3000" };
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowClientWithCredentials", policy =>
+            {
+                policy.WithOrigins(allowedClients)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
+        
         // --- FILTERS ---
         builder.Services.AddControllers(options =>
         {
@@ -226,7 +239,7 @@ public class Program
 
         // --- BUILD ---
         var app = builder.Build();
-
+        
         // --- DATABASE INITIALIZATION ---
         if (configuration.GetValue<bool>("RUNNING_IN_DOCKER") || app.Environment.IsDevelopment())
         {
@@ -240,7 +253,10 @@ public class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
-
+        
+        // --- CORS ---
+        app.UseCors("AllowClientWithCredentials");
+        
         // --- MIDDLEWARE ---
         app.UseAuthentication();
         app.UseAuthorization();

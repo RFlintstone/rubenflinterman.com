@@ -1,14 +1,15 @@
 export interface Campaign {
   id: string;
   name: string;
-  theme: 'amber' | 'blue';
+  campaignTheme: string;
   summary: string;
-  dungeonmaster: any;
+  dungeonmaster: User | null;
 }
 
 export interface User {
-  name: string;
-  role: 'admin' | 'player';
+  id: string;
+  username: string;
+  role: 'dm' | 'player';
 }
 
 export interface Quote {
@@ -26,6 +27,7 @@ export interface LoreEntry {
 }
 
 export interface Character {
+  userId: string;
   id: string;
   name: string;
   class: string;
@@ -40,4 +42,13 @@ export interface Quest {
   description: string;
   status: 'active' | 'completed' | 'failed';
   campaignId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QuestsCollection {
+  totalQuests: number;
+  active: Quest[];
+  completed: Quest[];
+  failed: Quest[];
 }

@@ -33,7 +33,7 @@ export default function AppLayout({
         router.push('/login');
     };
 
-    const themeColor = activeCampaign?.theme === 'blue' ? 'blue' : 'amber';
+    const themeColor = activeCampaign?.campaignTheme === 'blue' ? 'blue' : 'amber';
     const bgClass = themeColor === 'blue' ? 'bg-blue-600' : 'bg-amber-600';
 
     return (
@@ -99,13 +99,13 @@ export default function AppLayout({
                         {activeCampaign ? (
                             <>
                                 <SidebarItem icon={Quote} label="Quotes" active={pathname === '/quotes'}
-                                             onClick={() => router.push('/quotes')} color={themeColor}/>
+                                             onClick={() => router.push('/dashboard/quotes')} color={themeColor}/>
                                 <SidebarItem icon={Book} label="Lore" active={pathname === '/lore'}
-                                             onClick={() => router.push('/lore')} color={themeColor}/>
+                                             onClick={() => router.push('/dashboard/lore')} color={themeColor}/>
                                 <SidebarItem icon={Users} label="The Party" active={pathname === '/party'}
-                                             onClick={() => router.push('/party')} color={themeColor}/>
+                                             onClick={() => router.push('/dashboard/party')} color={themeColor}/>
                                 <SidebarItem icon={MapIcon} label="Map" active={pathname === '/map'}
-                                             onClick={() => router.push('/map')} color={themeColor}/>
+                                             onClick={() => router.push('/dashboard/map')} color={themeColor}/>
                             </>
                         ) : null}
                     </nav>
@@ -113,7 +113,11 @@ export default function AppLayout({
                     <div className="mt-auto pt-4 border-t border-slate-800 flex items-center justify-between">
                         <div className="text-xs">
                             <p className="text-slate-500">Logged in as</p>
-                            <p className="font-bold text-slate-200">{user.name}</p>
+                            {localStorage.getItem('userRole') ? (
+                                <p className="font-bold text-slate-200">{user.username} ({localStorage.getItem('userRole')!.toLowerCase() === "dm" ? 'DM' : "Player"})</p>
+                            ) : (
+                                <p className="font-bold text-slate-200">{user.username}</p>
+                            )}
                         </div>
                         <button onClick={handleLogout} className="p-2 text-slate-500 hover:text-white">
                             <LogOut size={18}/>
@@ -129,7 +133,7 @@ export default function AppLayout({
 
             {/* Background Decorative Gradient */}
             <div
-                className={`fixed top-0 right-0 w-[500px] h-[500px] ${activeCampaign?.theme === 'blue' ? 'bg-blue-900/10' : 'bg-amber-900/10'} rounded-full blur-[120px] pointer-events-none -z-10`}></div>
+                className={`fixed top-0 right-0 w-[500px] h-[500px] ${activeCampaign?.campaignTheme === 'blue' ? 'bg-blue-900/10' : 'bg-amber-900/10'} rounded-full blur-[120px] pointer-events-none -z-10`}></div>
         </div>
     );
 }

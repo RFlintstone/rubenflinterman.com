@@ -6,6 +6,7 @@ using Api.Services.Auth;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Api.Controllers.Auth;
 
@@ -27,7 +28,7 @@ public class TokenController : ControllerBase
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshToken([FromBody] TokenExchangeModel model)
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenExchangeModel model)
     {
         // Get the user by the provided Refresh Token
         var user = await _dbContext.Users
@@ -113,7 +114,7 @@ public class TokenController : ControllerBase
     }
 
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout([FromBody] TokenExchangeModel model)
+    public async Task<IActionResult> Logout([FromBody] RefreshTokenExchangeModel model)
     {
         // Find the user by the provided Refresh Token
         var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.RefreshToken == model.RefreshToken);
@@ -132,5 +133,37 @@ public class TokenController : ControllerBase
 
         // If no user found, return NotFound
         return NotFound("Active session not found for the provided token.");
+    }
+
+    /// <summary>
+    /// Validate the access token and return its claims if valid.
+    /// </summary>
+    /// <param name="model"></param>
+    /// <returns></returns>
+    [HttpPost("verify")]
+    public IActionResult VerifyToken([FromBody] AccessTokenExchangeModel model)
+    {
+        if (model == null || string.IsNullOrWhiteSpace(model.AccessToken))
+        {
+            _logger.LogWarning("VerifyToken called with null or empty token.");
+            return BadRequest(new { message = "Token is null or empty." });
+        }
+
+        var inspection = _authTokenService.ValidateOrInspectToken(model.AccessToken);
+
+        if (inspection.IsValid && inspection.Principal is not null)
+        {
+            var claims = inspection.Principal.Claims.Select(c => new { c.Type, c.Value });
+            return Ok(new { message = "Token valid.", claims });
+        }
+
+        if (inspection.IsExpired && inspection.Principal is not null)
+        {
+            var claims = inspection.Principal.Claims.Select(c => new { c.Type, c.Value });
+            return Unauthorized(new { message = "Token expired.", claims });
+        }
+
+        _logger.LogWarning("Token validation failed: invalid or malformed token.");
+        return Unauthorized(new { message = "Invalid token." });
     }
 }

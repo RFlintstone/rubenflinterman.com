@@ -9,7 +9,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { login } = useUser();
 
-  const [role, setRole] = useState<'admin' | 'player'>('player');
+  const [role, setRole] = useState<'dm' | 'player'>('player');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,7 +21,6 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      // 1. Hit your .NET Login endpoint (assuming you have a /login endpoint in AuthController)
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/api/v1/token/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -40,7 +39,14 @@ export default function LoginPage() {
         }
       }
 
-      const data = await response.json();
+      const contentType = response.headers.get("content-type");
+      const data = contentType && contentType.indexOf("application/json") !== -1
+          ? await response.json()
+          : null;
+
+      if (!data) {
+        throw new Error("Empty or invalid JSON response from server");
+      }
 
       // 2. Store the JWT Token
       localStorage.setItem('userToken', data.accessToken);
@@ -84,8 +90,8 @@ export default function LoginPage() {
               </button>
               <button
                   type="button"
-                  onClick={() => setRole('admin')}
-                  className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${role === 'admin' ? 'bg-amber-600 text-white shadow' : 'text-slate-400'}`}
+                  onClick={() => setRole('dm')}
+                  className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${role === 'dm' ? 'bg-amber-600 text-white shadow' : 'text-slate-400'}`}
               >
                 DM
               </button>
@@ -128,15 +134,15 @@ export default function LoginPage() {
                   type="submit"
                   disabled={isSubmitting}
                   className={`w-full py-4 rounded-xl font-bold mt-4 transition-all shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50 ${
-                      role === 'admin' ? 'bg-amber-600 hover:bg-amber-500 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'
+                      role === 'dm' ? 'bg-amber-600 hover:bg-amber-500 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'
                   }`}
               >
                 {isSubmitting ? (
                     <Loader2 className="animate-spin" size={18} />
                 ) : (
                     <>
-                      {role === 'admin' ? <Lock size={18} /> : <Users size={18} />}
-                      <span>Enter World as {role === 'admin' ? 'DM' : 'Player'}</span>
+                      {role === 'dm' ? <Lock size={18} /> : <Users size={18} />}
+                      <span>Enter World as {role === 'dm' ? 'DM' : 'Player'}</span>
                     </>
                 )}
               </button>
