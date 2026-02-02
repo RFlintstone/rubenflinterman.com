@@ -3,7 +3,8 @@
 import './lore.css';
 import { Book, Lock, ChevronDown, Edit3, Ghost, Layers, MessageCircle, Trash2, X, LucideIcon } from 'lucide-react';
 import { useCampaign } from '@/lib/CampaignContext';
-import { useEffect, useState } from "react";
+import { useUser } from '@/lib/UserContext';
+import {useEffect, useMemo, useState} from "react";
 
 type LoreEntry = {
     id: string;
@@ -17,6 +18,7 @@ type LoreEntry = {
 
 export default function LorePage() {
     const { activeCampaign } = useCampaign();
+    const { user } = useUser();
     const [isLorePromptOpen, setIsLorePromptOpen] = useState(false);
     const [editingLore, setEditingLore] = useState<LoreEntry | null>(null);
     const [loading, setLoading] = useState(true);
@@ -24,7 +26,17 @@ export default function LorePage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [loreToDelete, setLoreToDelete] = useState<string | null>(null);
 
-    const isDM = typeof window !== 'undefined' && localStorage.getItem('userRole')?.toLowerCase() === 'dm';
+    const isDM = useMemo(() => {
+        // If no user or no active campaign, return false
+        if (!user?.id || !activeCampaign) return false;
+
+        // Compare user ID with DM ID from campaign
+        const dmId = activeCampaign.dungeonmaster?.id || activeCampaign.dungeonMasterId;
+
+        // Return boolean comparison (case-insensitive)
+        return user.id.toString().toLowerCase() === dmId?.toString().toLowerCase();
+    }, [user?.id, activeCampaign]);
+
     const isBlue = activeCampaign?.campaignTheme === 'blue';
     const bgClass = isBlue ? 'bg-blue-600' : 'bg-amber-600';
     const hoverClass = isBlue ? 'hover:bg-blue-700' : 'hover:bg-amber-700';

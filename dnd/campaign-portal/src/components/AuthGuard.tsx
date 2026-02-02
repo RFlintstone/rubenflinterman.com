@@ -1,69 +1,74 @@
 'use client';
 
-import {useUser} from '@/lib/UserContext';
-import {usePathname, useRouter} from 'next/navigation';
-import {useEffect} from 'react';
-import {Loader2} from 'lucide-react';
+import { useUser } from '@/lib/UserContext';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState, useRef } from 'react';
+import { Loader2 } from 'lucide-react';
 
-export function AuthGuard({children}: { children: React.ReactNode }) {
-    const {user, isLoading} = useUser();
+export function AuthGuard({ children }: { children: React.ReactNode }) {
+    const { user, isLoading: contextLoading, login } = useUser();
     const router = useRouter();
     const pathname = usePathname();
+    const [isVerifying, setIsVerifying] = useState(true);
+    const hasChecked = useRef(false);
 
     useEffect(() => {
-        const verifyToken = async () => {
+        const verify = async () => {
             const token = localStorage.getItem('userToken');
+            const isLoginPage = pathname === '/login';
+
             if (!token) {
-                router.push('/login');
+                setIsVerifying(false);
+                if (!isLoginPage) router.replace('/login');
                 return;
             }
 
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/api/v1/token/verify`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/api/v1/token/verify`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
+                        'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({accessToken: token}),
+                    body: JSON.stringify({ accessToken: token }),
                 });
 
-                if (!response.ok) {
-                    router.push('/login');
-                }
-
-                const responseData = await response.json();
-                if (response.ok && responseData.message.toString().toLowerCase() === 'token valid.') {
-                    // If we are on login page and token is valid, redirect to dashboard
-                    if (pathname === '/login') {
-                        router.push('/dashboard');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.message?.toLowerCase().includes('valid')) {
+                        if (!user) await login('player');
+                        if (isLoginPage) router.replace('/');
                     }
+                } else {
+                    localStorage.removeItem('userToken');
+                    if (!isLoginPage) router.replace('/login');
                 }
-            } catch (error) {
-                console.error('Token verification failed:', error);
-                router.push('/login');
+            } catch (e) {
+                console.error("Verification error", e);
+            } finally {
+                setIsVerifying(false);
             }
         };
 
-        // Verify token on page load
-        verifyToken();
+        if (!hasChecked.current || pathname === '/login') {
+            verify();
+            hasChecked.current = true;
+        }
+    }, [pathname, router, login, user]);
 
-        // Set up interval to verify token periodically
-        const interval = setInterval(verifyToken, 1 * 60 * 1000); // Every minute
+    // Show loading if we're not on the login page and we're verifying or context is loading
+    const showLoader = pathname !== '/login' && (isVerifying || contextLoading);
 
-        return () => clearInterval(interval); // Cleanup interval on unmount
-    }, [router.push]);
-
-    // Prevent "Flicker": Don't show the dashboard if we are still loading
-    // or if we are about to redirect to login.
-    if (isLoading) {
+    if (showLoader) {
         return (
             <div className="min-h-screen bg-[#0a0c10] flex items-center justify-center">
-                <Loader2 className="animate-spin text-amber-500" size={40}/>
+                <div className="text-center space-y-4">
+                    <Loader2 className="animate-spin text-amber-500 mx-auto" size={40}/>
+                    <p className="text-slate-400 text-lg font-serif italic">Verifying Credentials...</p>
+                </div>
             </div>
         );
     }
 
-    // If we are on login page, or we have a user, show the content
     return <>{children}</>;
 }

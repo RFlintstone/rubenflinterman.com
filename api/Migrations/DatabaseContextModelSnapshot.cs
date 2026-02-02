@@ -129,6 +129,49 @@ namespace Api.Migrations
                     b.ToTable("DnD_LoreEntries");
                 });
 
+            modelBuilder.Entity("Api.Models.Dnd.MapModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("DnD_Maps");
+                });
+
             modelBuilder.Entity("Api.Models.Dnd.QuestModel", b =>
                 {
                     b.Property<Guid>("Id")
@@ -434,6 +477,17 @@ namespace Api.Migrations
                     b.Navigation("Campaign");
                 });
 
+            modelBuilder.Entity("Api.Models.Dnd.MapModel", b =>
+                {
+                    b.HasOne("Api.Models.Dnd.CampaignModel", "Campaign")
+                        .WithMany("Maps")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+                });
+
             modelBuilder.Entity("Api.Models.Dnd.QuestModel", b =>
                 {
                     b.HasOne("Api.Models.Dnd.CampaignModel", "Campaign")
@@ -504,6 +558,8 @@ namespace Api.Migrations
             modelBuilder.Entity("Api.Models.Dnd.CampaignModel", b =>
                 {
                     b.Navigation("LoreEntries");
+
+                    b.Navigation("Maps");
 
                     b.Navigation("Party");
 

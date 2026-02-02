@@ -1,13 +1,14 @@
 'use client';
 
-import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
+import React, {createContext, ReactNode, useCallback, useContext, useEffect, useState} from 'react';
 import {User} from '@/types';
 
 interface UserContextType {
     user: User | null;
-    isLoading: boolean; // Added to prevent flickering/redirects during check
-    login: (role: 'dm' | 'player') => void;
+    isLoading: boolean;
+    login: () => Promise<void>;
     logout: () => void;
+    refreshUser: () => Promise<void>; // No longer needs campaignId
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -16,75 +17,65 @@ export function UserProvider({children}: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Check for existing session on mount
-    useEffect(() => {
+    const initUser = useCallback(async () => {
         const token = localStorage.getItem('userToken');
-
-        async function fetchUsername() {
-            try {
-                if (!token) {
-                    setIsLoading(false); // No token, stop loading
-                    return;
-                }
-
-                const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/api/v1/user`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-
-                if (!userResponse.ok) {
-                    throw new Error(`User API error: ${userResponse.status}`);
-                }
-
-                const userData = await userResponse.json();
-                const username = userData.username ? userData.username : null;
-
-                const lookingAtCampaign = localStorage.getItem('campaignId');
-                const campaignResponse = await fetch(`${process.env.NEXT_PUBLIC_API_HOST}/api/v1/campaign/${lookingAtCampaign}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    }
-                });
-
-                if (!campaignResponse.ok) {
-                    throw new Error(`Campaign API error: ${campaignResponse.status}`);
-                }
-
-                const campaignData = await campaignResponse.json();
-                const isDM = userData.id?.trim() === campaignData?.dungeonmaster?.id?.trim();
-
-                const role = isDM ? 'dm' : 'player';
-                setUser({
-                    id: userData.id,
-                    username: username || 'User',
-                    role
-                });
-                localStorage.setItem('userRole', role);
-            } catch (error) {
-                console.error('Error fetching username:', error);
-            } finally {
-                setIsLoading(false);
-            }
+        if (!token) {
+            setUser(null);
+            setIsLoading(false);
+            return;
         }
 
-        fetchUsername();
+        try {
+            const API_HOST = process.env.NEXT_PUBLIC_API_HOST;
+
+            // 1. Fetch User Identity ONLY
+            const userResponse = await fetch(`${API_HOST}/api/v1/user`, {
+                headers: {'Authorization': `Bearer ${token}`},
+            });
+
+            if (!userResponse.ok) throw new Error("Invalid Token");
+            const userData = await userResponse.json();
+
+            // 2. Set only the core profile.
+            // We don't calculate 'role' here anymore to prevent API spam.
+            setUser({
+                role: userData.role,
+                id: userData.id,
+                username: userData.username || 'User',
+                email: userData.email || 'email@example.com'
+                // role is removed from the user object state
+            });
+
+        } catch (error) {
+            console.error('Session initialization failed:', error);
+            localStorage.removeItem('userToken');
+            setUser(null);
+        } finally {
+            setIsLoading(false);
+        }
     }, []);
 
-    // Login function simply reloads the page to re-trigger the UserProvider logic
-    const login = () => {
-        window.location.reload();
+    useEffect(() => {
+        initUser();
+    }, [initUser]);
+
+    const login = async () => {
+        setIsLoading(true);
+        await initUser();
     };
 
-    // Logout function clears local storage and user state
+    const refreshUser = async () => {
+        await initUser();
+    };
+
     const logout = () => {
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('userRole');
+        localStorage.clear();
         setUser(null);
+        window.location.href = '/login';
     };
 
     return (
-        <UserContext.Provider value={{user, isLoading, login, logout}}>
+        <UserContext.Provider value={{user, isLoading, login, logout, refreshUser}}>
             {children}
         </UserContext.Provider>
     );
@@ -92,8 +83,6 @@ export function UserProvider({children}: { children: ReactNode }) {
 
 export function useUser() {
     const context = useContext(UserContext);
-    if (context === undefined) {
-        throw new Error('useUser must be used within a UserProvider');
-    }
+    if (context === undefined) throw new Error('useUser must be used within a UserProvider');
     return context;
 }

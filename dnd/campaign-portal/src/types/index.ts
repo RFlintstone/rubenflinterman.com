@@ -3,12 +3,14 @@ export interface Campaign {
   name: string;
   campaignTheme: string;
   summary: string;
+  dungeonMasterId: any;
   dungeonmaster: User | null;
 }
 
 export interface User {
   id: string;
   username: string;
+  email: string;
   role: 'dm' | 'player';
 }
 
@@ -32,8 +34,9 @@ export interface Character {
   name: string;
   class: string;
   level: number;
+  ownerId: string;
   campaignId: string;
-  dndBeyondUrl: string | undefined;
+  dndBeyondUrl: string;
 }
 
 export interface Quest {
@@ -51,4 +54,12 @@ export interface QuestsCollection {
   active: Quest[];
   completed: Quest[];
   failed: Quest[];
+}
+
+export interface CardProps {
+  title: string;
+  icon: React.ComponentType;
+  theme: string;
+  className?: string;
+  onClick?: () => void;
 }

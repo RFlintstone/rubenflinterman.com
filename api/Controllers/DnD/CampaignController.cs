@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using Api.Services.Users;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Api.Controllers.Dnd;
 
@@ -23,22 +25,40 @@ public class CampaignController(DatabaseContext dbContext, UserInfoService userI
     public async Task<IActionResult> CreateCampaign([FromBody] CampaignModel model)
     {
         // Hydrate the service with the current user's claims
-        if (!userInfoService.SetId(User)) return Unauthorized("Could not identify user from token.");
-
-        // Get the user ID of the logged-in user
+        if (!userInfoService.SetId(User)) return Unauthorized();
         var userId = userInfoService.GetId();
 
-        // Set the DungeonMasterId to the logged-in user
-        model.DungeonMasterId = userId;
+        // CRITICAL: Detach the DungeonMaster object sent by the frontend JSON.
+        // This satisfies the "Required" validator but prevents the tracking conflict.
+        model.DungeonMaster = null; 
+        
+        // Set the DM to the current user
+        model.DungeonMasterId = userId; 
 
-        // Add the new campaign to the database
+        // Fetch the existing user from the DB context.
+        // This instance is now the "Source of Truth" for the tracker.
+        var user = await dbContext.Users.FindAsync(userId);
+    
+        // Add the current user to the enrolled users list
+        if (user != null) 
+        {
+            // Initialize the list if it's null, then add the tracked user.
+            model.EnrolledUsers ??= new List<UserInfoModel>();
+            model.EnrolledUsers.Add(user);
+        }
+
+        // Add the campaign to the database
         dbContext.Campaigns.Add(model);
         await dbContext.SaveChangesAsync();
 
-        // Return the created campaign with a 201 status code
-        return CreatedAtAction(nameof(GetCampaignDetails), new { id = model.Id }, model);
+        // Return the created campaign details
+        return CreatedAtAction(nameof(GetCampaignDetails), new { id = model.Id }, new { 
+            id = model.Id, 
+            name = model.Name,
+            message = "Campaign created successfully!" 
+        });
     }
-
+    
     // Returns all campaigns the logged-in user is part of
     /// <summary>
     /// Retrieves all campaigns associated with the currently authenticated user.
@@ -870,5 +890,92 @@ public class CampaignController(DatabaseContext dbContext, UserInfoService userI
 
         // Return success response
         return Ok("User unenrolled successfully.");
+    }
+
+    // --- Map Endpoints ---
+
+    /// <summary>
+    /// Adds a new map to the specified campaign identified by the 'id' parameter.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="model"></param>
+    /// <returns></returns>
+    [HttpPost("{id}/map")]
+    public async Task<IActionResult> AddMap(Guid id, [FromBody] MapModel model)
+    {
+        var campaign = await dbContext.Campaigns.FindAsync(id);
+        if (campaign == null) return NotFound();
+
+        model.CampaignId = id;
+        dbContext.Maps.Add(model);
+        await dbContext.SaveChangesAsync();
+
+        return Ok(model);
+    }
+
+    /// <summary>
+    /// Retrieves all maps associated with the specified campaign identified by the 'id' parameter.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [HttpGet("{id}/maps")]
+    public async Task<IActionResult> GetCampaignMaps(Guid id)
+    {
+        var maps = await dbContext.Maps
+            .Where(m => m.CampaignId == id)
+            .OrderByDescending(m => m.CreatedAt)
+            .ToListAsync();
+        return Ok(maps);
+    }
+
+    /// <summary>
+    /// Updates an existing map within the specified campaign.
+    /// The target campaign is identified by the 'id' parameter, and the specific map to update is identified by the 'mapId' parameter.
+    /// </summary>
+    [HttpPut("{id}/map/{mapId}")]
+    public async Task<IActionResult> UpdateMap(Guid id, Guid mapId, [FromBody] MapModel updatedMap)
+    {
+        // 1. Verify the campaign exists
+        var campaign = await dbContext.Campaigns.FindAsync(id);
+        if (campaign == null) return NotFound("Campaign not found.");
+
+        // 2. Find the specific map and ensure it belongs to this campaign
+        var map = await dbContext.Maps.FindAsync(mapId);
+        if (map == null || map.CampaignId != id)
+            return NotFound("Map not found in the specified campaign.");
+
+        // 3. Update the fields
+        map.Title = !string.IsNullOrWhiteSpace(updatedMap.Title) ? updatedMap.Title : map.Title;
+        map.ImageUrl = !string.IsNullOrWhiteSpace(updatedMap.ImageUrl) ? updatedMap.ImageUrl : map.ImageUrl;
+        map.Description = updatedMap.Description; // Nullable, so we just map it
+        map.Category = !string.IsNullOrWhiteSpace(updatedMap.Category) ? updatedMap.Category : map.Category;
+        map.IsPublic = updatedMap.IsPublic; // Boolean, so we just map it
+
+        // 4. Update the timestamp
+        map.UpdatedAt = DateTime.UtcNow;
+
+        // 5. Save and return
+        dbContext.Maps.Update(map);
+        await dbContext.SaveChangesAsync();
+
+        return Ok(map);
+    }
+
+    /// <summary>
+    /// Deletes a map from the specified campaign.
+    /// The target campaign is identified by the 'id' parameter, and the specific map to delete is identified by the 'mapId' parameter.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="mapId"></param>
+    /// <returns></returns>
+    [HttpDelete("{id}/map/{mapId}")]
+    public async Task<IActionResult> DeleteMap(Guid id, Guid mapId)
+    {
+        var map = await dbContext.Maps.FindAsync(mapId);
+        if (map == null || map.CampaignId != id) return NotFound();
+
+        dbContext.Maps.Remove(map);
+        await dbContext.SaveChangesAsync();
+        return NoContent();
     }
 }

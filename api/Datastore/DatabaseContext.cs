@@ -24,6 +24,7 @@ public class DatabaseContext : DbContext
     public DbSet<CharacterModel> Characters { get; set; }
     public DbSet<QuestModel> Quests { get; set; }
     public DbSet<LoreEntryModel> LoreEntries { get; set; }
+    public DbSet<MapModel> Maps { get; set; }
 
     public DatabaseContext(DbContextOptions<DatabaseContext> options, EncryptionService encryptionService,
         IConfiguration configuration) : base(options)
@@ -35,7 +36,7 @@ public class DatabaseContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
         // User and Auth Configurations
         UserModelConfigurations(modelBuilder);
 
@@ -98,10 +99,10 @@ public class DatabaseContext : DbContext
         // One-to-Many: User (DM) -> Campaigns
         modelBuilder.Entity<CampaignModel>()
             .HasOne(c => c.DungeonMaster)
-            .WithMany(u => u.CampaignsAsDM)  
+            .WithMany(u => u.CampaignsAsDM)
             .HasForeignKey(c => c.DungeonMasterId)
             .OnDelete(DeleteBehavior.Restrict);
-    
+
         // Many-to-Many: Campaign <-> User (Enrollment)
         modelBuilder.Entity<CampaignModel>()
             .HasMany(c => c.EnrolledUsers)

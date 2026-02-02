@@ -81,7 +81,7 @@ public class TokenController : ControllerBase
             user.Password != Convert.ToBase64String(_encryptionService.Encrypt(model.Password, user.Id)))
         {
             _logger.LogWarning("Login failed @ {timestamp}", DateTime.UtcNow);
-            return Unauthorized(new { message = "Invalid credentials." });
+            return Unauthorized(new { message = "Invalid credentials or the account doesn't exist." });
         }
 
         // Create a new Refresh Token

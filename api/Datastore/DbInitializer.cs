@@ -1,6 +1,5 @@
 ﻿using System.Text.RegularExpressions;
 using Api.Constants;
-using Api.Models.Dnd;
 using Api.Models.Users;
 using Api.Services.Auth;
 using Api.Services.Users;
@@ -14,49 +13,36 @@ public static class DbInitializer
 
     public static async Task InitializeAsync(IServiceProvider serviceProvider)
     {
-        // Create a new scope to retrieve scoped services
         using var scope = serviceProvider.CreateScope();
         var services = scope.ServiceProvider;
 
-        // Retrieve the required services
         var context = services.GetRequiredService<DatabaseContext>();
         var encryption = services.GetRequiredService<EncryptionService>();
         var avatarService = services.GetRequiredService<AvatarService>();
+        var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("DbInitializer");
 
-        // Set up logging
-        var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-        var logger = loggerFactory.CreateLogger("DbInitializer");
-
-        // Execute any pending migrations
+        // Migrate
         await context.Database.MigrateAsync();
 
-        // Update pre-existing users with default properties
-        await UpdatePreExistingUsers(context, encryption, avatarService, logger);
-
-        // Seed Roles and Permissions
-        foreach (var role in AuthConstants.Roles.AllRoles)
-        {
-            // Add roles to the database if they don't exist
-            await AddRoleIfNotExists(context, role);
-
-            // Add permissions to the database if they don't exist
-            foreach (var permission in role.RolePermissions)
-            {
-                await AddPermissionIfNotExists(context, permission);
-            }
-        }
-
-        // Make sure we have all permissions in the DB, even if not tied to a role
+        // Seed Permissions
         foreach (var permission in AuthConstants.Permissions.AllPermissions)
         {
             await AddPermissionIfNotExists(context, permission);
         }
+
+        // Seed Roles
+        foreach (var role in AuthConstants.Roles.AllRoles)
+        {
+            await AddRoleIfNotExists(context, role);
+        }
+
+        // Update Users
+        await UpdatePreExistingUsers(context, encryption, avatarService, logger);
     }
 
     private static async Task UpdatePreExistingUsers(DatabaseContext context, EncryptionService encryption,
         AvatarService avatarService, ILogger logger)
     {
-        // Find users with default properties
         var usersToUpdate = await context.Users
             .Where(u =>
                 u.Username == string.Empty ||
@@ -65,79 +51,57 @@ public static class DbInitializer
                 u.PhoneNumber == string.Empty ||
                 u.Roles.Count == 0 ||
                 u.Avatar == string.Empty
-            ).Include(userInfoModel => userInfoModel.Roles)
+            ).Include(u => u.Roles)
             .ToListAsync();
 
-        // Update each pre-existing user with default properties
-        if (usersToUpdate.Any())
+        if (!usersToUpdate.Any()) return;
+
+        // Fetch the actual tracked Banned Role instance once to reuse
+        var bannedRole = await context.UserRoles
+            .FirstOrDefaultAsync(r => r.RoleName == AuthConstants.Roles.BannedUser.RoleName);
+
+        foreach (var user in usersToUpdate)
         {
-            foreach (var user in usersToUpdate)
+            if (CrlfRegex.IsMatch(user.Username))
             {
-                // Sanitize username to prevent CRLF injection
-                if (CrlfRegex.IsMatch(user.Username))
-                {
-                    logger.LogInformation("Sanitizing username for user {UserId}", user.Id);
-                    user.Username = CrlfRegex.Replace(user.Username, "");
-                }
-
-                // Update username if somehow empty
-                if (user.Username == string.Empty)
-                {
-                    logger.LogInformation("Updating username for user {UserId}", user.Id);
-
-                    var tempId = user.Id.ToString();
-                    if (tempId.Length < 8) tempId = Guid.NewGuid().ToString();
-
-                    user.Username = $"user-{tempId[..8]}";
-                }
-
-                // Set default email if empty
-                if (user.Email == string.Empty)
-                {
-                    logger.LogInformation("Updating email for user {UserId}", user.Id);
-                    user.Email = $"{user.Username.ToLower()}@user.com";
-                }
-
-                // Set default password if empty
-                if (user.Password == string.Empty)
-                {
-                    logger.LogInformation("Updating password for user {UserId}", user.Id);
-                    string plainPassword = user.Username.ToLower();
-                    user.Password = Convert.ToBase64String(encryption.Encrypt(plainPassword, user.Id));
-                }
-
-                // Set default phone number if empty
-                if (user.PhoneNumber == string.Empty)
-                {
-                    logger.LogInformation("Updating phone number for user {UserId}", user.Id);
-                    user.PhoneNumber = "000-000-0000";
-                }
-
-                // Set default role if none assigned
-                if (user.Roles.Count == 0)
-                {
-                    logger.LogInformation("Updating roles for user {UserId}", user.Id);
-                    user.Roles.Add(AuthConstants.Roles.BannedUser);
-                }
-
-                if (user.Avatar == string.Empty)
-                {
-                    logger.LogInformation("Updating avatar for user {UserId}", user.Id);
-                    user.Avatar = await avatarService.GetDefaultAvatarBase64Async(user.Username);
-                }
-
-                // Set a timestamp
-                user.LastLogin = DateTime.MinValue;
-
-                // Set refresh token fields
-                user.RefreshToken = Guid.Empty.ToString();
-                user.RefreshTokenCreated = DateTime.MinValue;
-                user.RefreshTokenExpiry = DateTime.MinValue;
+                user.Username = CrlfRegex.Replace(user.Username, "");
             }
 
-            // Save changes for all updated users
-            await context.SaveChangesAsync();
+            if (user.Username == string.Empty)
+            {
+                var tempId = user.Id.ToString();
+                user.Username = $"user-{(tempId.Length < 8 ? Guid.NewGuid().ToString()[..8] : tempId[..8])}";
+            }
+
+            if (user.Email == string.Empty)
+                user.Email = $"{user.Username.ToLower()}@user.com";
+
+            if (user.Password == string.Empty)
+            {
+                string plainPassword = user.Username.ToLower();
+                user.Password = Convert.ToBase64String(encryption.Encrypt(plainPassword, user.Id));
+            }
+
+            if (user.PhoneNumber == string.Empty)
+                user.PhoneNumber = "000-000-0000";
+
+            // FIX: Use the tracked instance, not the static constant
+            if (user.Roles.Count == 0 && bannedRole != null)
+            {
+                logger.LogInformation("Assigning Banned role to user {UserId}", user.Id);
+                user.Roles.Add(bannedRole);
+            }
+
+            if (user.Avatar == string.Empty)
+                user.Avatar = await avatarService.GetDefaultAvatarBase64Async(user.Username);
+
+            user.LastLogin = DateTime.MinValue;
+            user.RefreshToken = Guid.Empty.ToString();
+            user.RefreshTokenCreated = DateTime.MinValue;
+            user.RefreshTokenExpiry = DateTime.MinValue;
         }
+
+        await context.SaveChangesAsync();
     }
 
     private static async Task AddRoleIfNotExists(DatabaseContext context, UserRoleModel role)
@@ -148,22 +112,29 @@ public static class DbInitializer
 
         if (existingRole == null)
         {
+            // We need to ensure the permissions attached to this new role 
+            // are also tracked instances from the DB
+            var trackedPermissions = new List<UserPermissionModel>();
+            foreach (var p in role.RolePermissions)
+            {
+                var dbPermission = await context.UserPermissions
+                    .FirstAsync(dp => dp.PermissionName == p.PermissionName);
+                trackedPermissions.Add(dbPermission);
+            }
+
+            role.RolePermissions = trackedPermissions;
             context.UserRoles.Add(role);
         }
         else
         {
-            // Update the code instance ID to match the DB
-            role.Id = existingRole.Id;
-
-            // Ensure the description is up to date
             existingRole.Description = role.Description;
-
-            // Sync Permissions: Add any missing ones from our static list to the DB role
             foreach (var p in role.RolePermissions)
             {
                 if (existingRole.RolePermissions.All(ep => ep.PermissionName != p.PermissionName))
                 {
-                    existingRole.RolePermissions.Add(p);
+                    var dbPermission = await context.UserPermissions
+                        .FirstAsync(dp => dp.PermissionName == p.PermissionName);
+                    existingRole.RolePermissions.Add(dbPermission);
                 }
             }
         }
@@ -173,18 +144,13 @@ public static class DbInitializer
 
     private static async Task AddPermissionIfNotExists(DatabaseContext context, UserPermissionModel permission)
     {
-        var existing = await context.UserPermissions
-            .FirstOrDefaultAsync(p => p.PermissionName == permission.PermissionName);
+        var exists = await context.UserPermissions
+            .AnyAsync(p => p.PermissionName == permission.PermissionName);
 
-        if (existing == null)
+        if (!exists)
         {
             context.UserPermissions.Add(permission);
             await context.SaveChangesAsync();
-            return;
         }
-
-        // Crucial: Update the code's static ID to match the DB's existing ID
-        // This ensures that when we seed Roles later, the relationship works.
-        permission.Id = existing.Id;
     }
 }

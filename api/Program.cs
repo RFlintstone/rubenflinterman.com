@@ -193,7 +193,7 @@ public class Program
         builder.Services.AddScoped<UserInfoService>();
         
         // --- CORS ---
-        var allowedClients = new[] { "http://localhost:3000", "http://192.168.0.244:3000" };
+        var allowedClients = new[] { "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://192.168.0.244:3000" };
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowClientWithCredentials", policy =>
