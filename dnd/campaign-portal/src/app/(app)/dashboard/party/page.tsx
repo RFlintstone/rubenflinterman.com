@@ -1,7 +1,17 @@
 'use client';
 
 import {useEffect, useState} from 'react';
-import {ExternalLink, Link as LinkIcon, UserCheck, UserMinus, UserPlus, Users, X} from 'lucide-react';
+import {
+    ExternalLink,
+    IdCard,
+    Link as LinkIcon,
+    LucideMailPlus,
+    UserCheck,
+    UserMinus,
+    UserPlus,
+    Users,
+    X
+} from 'lucide-react';
 import {useCampaign} from '@/lib/CampaignContext';
 import {useUser} from "@/lib/UserContext";
 
@@ -264,7 +274,32 @@ export default function PartyPage() {
                                 </div>
                                 <div>
                                     <h4 className="text-white font-semibold">{user.username}</h4>
-                                    {user.isDm && <p className="text-xs text-amber-500 font-bold">Dungeon Master</p>}
+                                    {currentUser?.role == 'dm' && (
+                                        <div className="flex items-center gap-1">
+                                            {/* 1. Remove top-[1%]. 2. Use -translate-y-[1px] if the icon feels too high or low. */}
+                                            <LucideMailPlus
+                                                size={14}
+                                                className="flex-shrink-0 translate-y-[1.7px] text-slate-400"
+                                            />
+                                            <span
+                                                className="leading-none -translate-y-[0.5px] text-sm">{user.email}</span>
+                                        </div>
+                                    )}
+                                    {user.isDm &&
+                                        <div className="flex items-center gap-1">
+                                            <IdCard size={14} className="flex-shrink-0 translate-y-[3.5px] text-slate-400"/>
+                                            <p className="translate-y-[2.8px] text-xs text-amber-500 font-bold">Dungeon
+                                                Master</p>
+                                        </div>
+                                    }
+                                    {!user.isDm &&
+                                        // Role Icon
+                                        <div className="flex items-center gap-1">
+                                            <IdCard size={14}
+                                                    className="flex-shrink-0 translate-y-[3.5px] text-slate-400"/>
+                                            <p className="translate-y-[2.8px] text-xs text-amber-500 font-bold">Player</p>
+                                        </div>
+                                    }
                                 </div>
                             </div>
                             {!user.isDm && currentUser?.role == 'dm' || user.id == currentUser?.id && (

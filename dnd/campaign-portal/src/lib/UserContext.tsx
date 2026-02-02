@@ -18,7 +18,6 @@ export function UserProvider({children}: { children: ReactNode }) {
 
     // Check for existing session on mount
     useEffect(() => {
-        const savedRole = localStorage.getItem('userRole') as 'dm' | 'player' | null;
         const token = localStorage.getItem('userToken');
 
         async function fetchUsername() {
@@ -55,14 +54,13 @@ export function UserProvider({children}: { children: ReactNode }) {
                 const campaignData = await campaignResponse.json();
                 const isDM = userData.id?.trim() === campaignData?.dungeonmaster?.id?.trim();
 
-                if (savedRole && token) {
-                    setUser({
-                        id: userData.id,
-                        username: username || 'User',
-                        role: isDM ? 'dm' : 'player'
-                    });
-                    localStorage.setItem('userRole', isDM ? 'dm' : 'player');
-                }
+                const role = isDM ? 'dm' : 'player';
+                setUser({
+                    id: userData.id,
+                    username: username || 'User',
+                    role
+                });
+                localStorage.setItem('userRole', role);
             } catch (error) {
                 console.error('Error fetching username:', error);
             } finally {
@@ -73,18 +71,12 @@ export function UserProvider({children}: { children: ReactNode }) {
         fetchUsername();
     }, []);
 
-    const login = (role: 'dm' | 'player') => {
-        // Persist the role choice to localStorage
-        localStorage.setItem('userRole', role);
-
-        // Populated by useEffect on mount, but we set a basic user here for immediate state update
-        setUser({
-            id: 'current-user-id',
-            username: role === 'dm' ? 'Dungeon Master' : 'Player',
-            role
-        });
+    // Login function simply reloads the page to re-trigger the UserProvider logic
+    const login = () => {
+        window.location.reload();
     };
 
+    // Logout function clears local storage and user state
     const logout = () => {
         localStorage.removeItem('userToken');
         localStorage.removeItem('userRole');

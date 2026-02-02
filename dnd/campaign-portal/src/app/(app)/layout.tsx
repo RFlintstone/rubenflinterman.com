@@ -7,11 +7,7 @@ import {useUser} from '@/lib/UserContext';
 import {useCampaign} from '@/lib/CampaignContext';
 import {SidebarItem} from '@/components/SidebarItem';
 
-export default function AppLayout({
-                                      children,
-                                  }: {
-    children: React.ReactNode;
-}) {
+export default function AppLayout({children}: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
     const {user, logout} = useUser();
@@ -24,9 +20,7 @@ export default function AppLayout({
         }
     }, [user, router]);
 
-    if (!user) {
-        return null;
-    }
+    if (!user) return null;
 
     const handleLogout = () => {
         logout();
@@ -35,14 +29,14 @@ export default function AppLayout({
 
     const themeColor = activeCampaign?.campaignTheme === 'blue' ? 'blue' : 'amber';
     const bgClass = themeColor === 'blue' ? 'bg-blue-600' : 'bg-amber-600';
+    const activeTextClass = themeColor === 'blue' ? 'text-blue-500' : 'text-amber-500';
 
     return (
         <div className="min-h-screen bg-[#0a0c10] text-slate-200 font-sans">
             <div className="flex">
-                {/* Sidebar */}
+                {/* --- DESKTOP SIDEBAR --- */}
                 <aside
                     className="hidden md:flex flex-col w-72 h-screen sticky top-0 bg-[#0d1117] border-r border-slate-800 p-6">
-
                     <div className="relative mb-6">
                         <button
                             onClick={() => setIsCampaignMenuOpen(!isCampaignMenuOpen)}
@@ -54,18 +48,15 @@ export default function AppLayout({
                                 </div>
                                 <div className="text-left">
                                     {!activeCampaign ? (
-                                        <>
-                                            <h1 className="font-serif font-bold text-sm text-white truncate max-w-[120px]">Soon
-                                                <span className="align-text-top text-xs font-sans">™</span>
-                                            </h1>
-                                        </>
+                                        <h1 className="font-serif font-bold text-sm text-white truncate max-w-[120px]">
+                                            Soon<span className="align-text-top text-xs font-sans">™</span>
+                                        </h1>
                                     ) : (
                                         <>
                                             <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">World</p>
                                             <h1 className="font-serif font-bold text-sm text-white truncate max-w-[120px]">{activeCampaign?.name}</h1>
                                         </>
                                     )}
-
                                 </div>
                             </div>
                             <ChevronDown size={16}
@@ -94,30 +85,26 @@ export default function AppLayout({
                     <nav className="flex-1 space-y-2">
                         <SidebarItem icon={Compass} label="Dashboard" active={pathname === '/dashboard'}
                                      onClick={() => router.push('/dashboard')} color={themeColor}/>
-
-                        {/* If user doesn't have campaigns */}
-                        {activeCampaign ? (
+                        {activeCampaign && (
                             <>
-                                <SidebarItem icon={Quote} label="Quotes" active={pathname === '/quotes'}
+                                <SidebarItem icon={Quote} label="Quotes" active={pathname === '/dashboard/quotes'}
                                              onClick={() => router.push('/dashboard/quotes')} color={themeColor}/>
-                                <SidebarItem icon={Book} label="Lore" active={pathname === '/lore'}
+                                <SidebarItem icon={Book} label="Lore" active={pathname === '/dashboard/lore'}
                                              onClick={() => router.push('/dashboard/lore')} color={themeColor}/>
-                                <SidebarItem icon={Users} label="The Party" active={pathname === '/party'}
+                                <SidebarItem icon={Users} label="The Party" active={pathname === '/dashboard/party'}
                                              onClick={() => router.push('/dashboard/party')} color={themeColor}/>
-                                <SidebarItem icon={MapIcon} label="Map" active={pathname === '/map'}
+                                <SidebarItem icon={MapIcon} label="Map" active={pathname === '/dashboard/map'}
                                              onClick={() => router.push('/dashboard/map')} color={themeColor}/>
                             </>
-                        ) : null}
+                        )}
                     </nav>
 
                     <div className="mt-auto pt-4 border-t border-slate-800 flex items-center justify-between">
                         <div className="text-xs">
                             <p className="text-slate-500">Logged in as</p>
-                            {localStorage.getItem('userRole') ? (
-                                <p className="font-bold text-slate-200">{user.username} ({localStorage.getItem('userRole')!.toLowerCase() === "dm" ? 'DM' : "Player"})</p>
-                            ) : (
-                                <p className="font-bold text-slate-200">{user.username}</p>
-                            )}
+                            <p className="font-bold text-slate-200">
+                                {user.username} {localStorage.getItem('userRole')?.toLowerCase() === "dm" ? '(DM)' : '(Player)'}
+                            </p>
                         </div>
                         <button onClick={handleLogout} className="p-2 text-slate-500 hover:text-white">
                             <LogOut size={18}/>
@@ -125,11 +112,56 @@ export default function AppLayout({
                     </div>
                 </aside>
 
-                {/* Main Content Area */}
-                <main className="flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full">
+                {/* --- MAIN CONTENT --- */}
+                {/* Note: Added pb-24 for mobile to prevent content being hidden behind the bottom nav */}
+                <main className="flex-1 p-6 md:p-10 pb-24 md:pb-10 max-w-7xl mx-auto w-full">
                     {children}
                 </main>
             </div>
+
+            {/* --- MOBILE NAVIGATION --- */}
+            <nav
+                className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0d1117] border-t border-slate-800 px-2 py-3 z-50 flex justify-around items-center backdrop-blur-md bg-opacity-90">
+                <button onClick={() => router.push('/dashboard')}
+                        className={`flex flex-col items-center gap-1 flex-1 ${pathname === '/dashboard' ? activeTextClass : 'text-slate-500'}`}>
+                    <Compass size={20}/>
+                    <span className="text-[10px] font-bold uppercase tracking-tighter">Home</span>
+                </button>
+
+                {activeCampaign ? (
+                    <>
+                        <button onClick={() => router.push('/dashboard/lore')}
+                                className={`flex flex-col items-center gap-1 flex-1 ${pathname === '/dashboard/lore' ? activeTextClass : 'text-slate-500'}`}>
+                            <Book size={20}/>
+                            <span className="text-[10px] font-bold uppercase tracking-tighter">Lore</span>
+                        </button>
+                        <button onClick={() => router.push('/dashboard/party')}
+                                className={`flex flex-col items-center gap-1 flex-1 ${pathname === '/dashboard/party' ? activeTextClass : 'text-slate-500'}`}>
+                            <Users size={20}/>
+                            <span className="text-[10px] font-bold uppercase tracking-tighter">Party</span>
+                        </button>
+                        <button onClick={() => router.push('/dashboard/map')}
+                                className={`flex flex-col items-center gap-1 flex-1 ${pathname === '/dashboard/map' ? activeTextClass : 'text-slate-500'}`}>
+                            <MapIcon size={20}/>
+                            <span className="text-[10px] font-bold uppercase tracking-tighter">Map</span>
+                        </button>
+                    </>
+                ) : (
+                    // Hide the worlds button if the user doesn't have any worlds
+                    campaigns.length > 0 && (
+                        <button onClick={() => setIsCampaignMenuOpen(true)}
+                                className="flex flex-col items-center gap-1 flex-1 text-slate-500">
+                            <Layers size={20}/>
+                            <span className="text-[10px] font-bold uppercase tracking-tighter">Worlds</span>
+                        </button>
+                    )
+                )}
+
+                <button onClick={handleLogout} className="flex flex-col items-center gap-1 flex-1 text-slate-500">
+                    <LogOut size={20}/>
+                    <span className="text-[10px] font-bold uppercase tracking-tighter">Exit</span>
+                </button>
+            </nav>
 
             {/* Background Decorative Gradient */}
             <div
