@@ -164,13 +164,13 @@ public class StorageController : ControllerBase
                 else
                 {
                     // No compression: write original bytes directly to Large Object
-                    while ((bytesRead = await inputStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    while ((bytesRead = await inputStream.ReadAsync(buffer.AsMemory(0, buffer.Length), HttpContext.RequestAborted)) > 0)
                     {
                         // Update hash with original bytes
                         sha256.TransformBlock(buffer, 0, bytesRead, null, 0);
 
                         // Write raw bytes to LO
-                        await loStream.WriteAsync(buffer, 0, bytesRead);
+                        await loStream.WriteAsync(buffer.AsMemory(0, bytesRead), HttpContext.RequestAborted);
                     }
 
                     // Finalize the hash
@@ -375,7 +375,6 @@ public class StorageController : ControllerBase
 
                 // Dispose stream resources
                 await streamToReturn.DisposeAsync();
-                if (loStream != null) await loStream.DisposeAsync();
 
                 // Dispose transaction and connection
                 await tx.DisposeAsync();
@@ -398,7 +397,7 @@ public class StorageController : ControllerBase
             }
 
             // Rollback and dispose transaction
-            await tx.RollbackAsync();
+            // await tx.RollbackAsync();
             await tx.DisposeAsync();
 
             // Dispose of connection as we are finished with database related tasks
@@ -429,18 +428,6 @@ public class StorageController : ControllerBase
 
         // Check if there is a valid user making the request
         if (requestingUserId == null) return StatusCode(403, "User not found.");
-
-        // Fetch user info for permission checks
-        var requestingUser = await _dbContext.Users
-            .Include(u => u.Roles)
-            .ThenInclude(r => r.RolePermissions)
-            .FirstOrDefaultAsync(u => u.Id == requestingUserId);
-
-        // Get user permissions
-        var userPermissions = requestingUser?.Roles
-            .SelectMany(r => r.RolePermissions)
-            .Select(p => p.PermissionName)
-            .ToList() ?? new List<string>();
 
         // Fetch the OID from the file_storage table
         var fileRecord = await _dbContext.FileStorage

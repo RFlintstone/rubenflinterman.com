@@ -2,7 +2,7 @@
 
 namespace Api.Models.Auth;
 
-public class TokenExchangeModel
+public class RefreshTokenExchangeModel
 {
     [Required(ErrorMessage = "Email is required.")]
     [DataType(DataType.EmailAddress)]

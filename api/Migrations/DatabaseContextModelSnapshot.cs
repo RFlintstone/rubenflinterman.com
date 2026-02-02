@@ -21,6 +21,181 @@ namespace Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Api.Models.Dnd.CampaignModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("DungeonMasterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Theme")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DungeonMasterId");
+
+                    b.ToTable("DnD_Campaigns");
+                });
+
+            modelBuilder.Entity("Api.Models.Dnd.CharacterModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Class")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DndBeyondUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("DnD_Characters");
+                });
+
+            modelBuilder.Entity("Api.Models.Dnd.LoreEntryModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("DnD_LoreEntries");
+                });
+
+            modelBuilder.Entity("Api.Models.Dnd.QuestModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("DnD_Quests");
+                });
+
+            modelBuilder.Entity("Api.Models.Dnd.QuoteModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Author")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<Guid>("CampaignId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("DnD_Quotes");
+                });
+
             modelBuilder.Entity("Api.Models.Storage.FileStorageModel", b =>
                 {
                     b.Property<Guid>("Id")
@@ -181,6 +356,21 @@ namespace Api.Migrations
                     b.ToTable("UserRoles");
                 });
 
+            modelBuilder.Entity("CampaignModelUserInfoModel", b =>
+                {
+                    b.Property<Guid>("EnrolledCampaignsId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("EnrolledUsersId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("EnrolledCampaignsId", "EnrolledUsersId");
+
+                    b.HasIndex("EnrolledUsersId");
+
+                    b.ToTable("CampaignEnrollments", (string)null);
+                });
+
             modelBuilder.Entity("UserInfoModelUserRoleModel", b =>
                 {
                     b.Property<Guid>("RolesId")
@@ -211,6 +401,76 @@ namespace Api.Migrations
                     b.ToTable("RolePermissionsJoin", (string)null);
                 });
 
+            modelBuilder.Entity("Api.Models.Dnd.CampaignModel", b =>
+                {
+                    b.HasOne("Api.Models.Users.UserInfoModel", "DungeonMaster")
+                        .WithMany("CampaignsAsDM")
+                        .HasForeignKey("DungeonMasterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DungeonMaster");
+                });
+
+            modelBuilder.Entity("Api.Models.Dnd.CharacterModel", b =>
+                {
+                    b.HasOne("Api.Models.Dnd.CampaignModel", "Campaign")
+                        .WithMany("Party")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+                });
+
+            modelBuilder.Entity("Api.Models.Dnd.LoreEntryModel", b =>
+                {
+                    b.HasOne("Api.Models.Dnd.CampaignModel", "Campaign")
+                        .WithMany("LoreEntries")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+                });
+
+            modelBuilder.Entity("Api.Models.Dnd.QuestModel", b =>
+                {
+                    b.HasOne("Api.Models.Dnd.CampaignModel", "Campaign")
+                        .WithMany("Quests")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+                });
+
+            modelBuilder.Entity("Api.Models.Dnd.QuoteModel", b =>
+                {
+                    b.HasOne("Api.Models.Dnd.CampaignModel", "Campaign")
+                        .WithMany("Quotes")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+                });
+
+            modelBuilder.Entity("CampaignModelUserInfoModel", b =>
+                {
+                    b.HasOne("Api.Models.Dnd.CampaignModel", null)
+                        .WithMany()
+                        .HasForeignKey("EnrolledCampaignsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Api.Models.Users.UserInfoModel", null)
+                        .WithMany()
+                        .HasForeignKey("EnrolledUsersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("UserInfoModelUserRoleModel", b =>
                 {
                     b.HasOne("Api.Models.Users.UserRoleModel", null)
@@ -239,6 +499,22 @@ namespace Api.Migrations
                         .HasForeignKey("UserRoleModelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Api.Models.Dnd.CampaignModel", b =>
+                {
+                    b.Navigation("LoreEntries");
+
+                    b.Navigation("Party");
+
+                    b.Navigation("Quests");
+
+                    b.Navigation("Quotes");
+                });
+
+            modelBuilder.Entity("Api.Models.Users.UserInfoModel", b =>
+                {
+                    b.Navigation("CampaignsAsDM");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Api.Constants;
+using Api.Models.Dnd;
 using Api.Models.Users;
 using Api.Services.Auth;
 using Api.Services.Users;
@@ -31,13 +32,13 @@ public static class DbInitializer
 
         // Update pre-existing users with default properties
         await UpdatePreExistingUsers(context, encryption, avatarService, logger);
-        
+
         // Seed Roles and Permissions
         foreach (var role in AuthConstants.Roles.AllRoles)
         {
             // Add roles to the database if they don't exist
             await AddRoleIfNotExists(context, role);
-            
+
             // Add permissions to the database if they don't exist
             foreach (var permission in role.RolePermissions)
             {
@@ -138,7 +139,7 @@ public static class DbInitializer
             await context.SaveChangesAsync();
         }
     }
-    
+
     private static async Task AddRoleIfNotExists(DatabaseContext context, UserRoleModel role)
     {
         var existingRole = await context.UserRoles
@@ -153,7 +154,7 @@ public static class DbInitializer
         {
             // Update the code instance ID to match the DB
             role.Id = existingRole.Id;
-        
+
             // Ensure the description is up to date
             existingRole.Description = role.Description;
 
@@ -166,9 +167,10 @@ public static class DbInitializer
                 }
             }
         }
+
         await context.SaveChangesAsync();
     }
-    
+
     private static async Task AddPermissionIfNotExists(DatabaseContext context, UserPermissionModel permission)
     {
         var existing = await context.UserPermissions

@@ -1,4 +1,6 @@
-﻿namespace Api.Models.Users;
+﻿using Api.Models.Dnd;
+
+namespace Api.Models.Users;
 
 public class UserInfoModel
 {
@@ -13,9 +15,13 @@ public class UserInfoModel
 
     // Authentication State
     public DateTime LastLogin { get; set; } = DateTime.UtcNow;
-    
+
     // RENAMED: This is the 'Refresh Token' used to get new JWTs
-    public string? RefreshToken { get; set; } 
+    public string? RefreshToken { get; set; }
     public DateTime RefreshTokenCreated { get; set; } = DateTime.UtcNow;
     public DateTime RefreshTokenExpiry { get; set; }
+
+    // DnD Campaigns the User might be enrolled in
+    public virtual ICollection<CampaignModel> CampaignsAsDM { get; set; } = new List<CampaignModel>();
+    public virtual ICollection<CampaignModel> EnrolledCampaigns { get; set; } = new List<CampaignModel>();
 }
